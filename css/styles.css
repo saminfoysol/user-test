@@ -76,10 +76,16 @@
       display: block;
       font-size: medium;
       z-index: 10;
-      padding: 0;
+      padding-top:1.1em;
+      padding-left:4em;
       width: 100%;
       height:8vh;
       border-bottom: 1px solid #D6DBDF;
+      }
+
+      #path_panel p{
+            color:#3D6FB1;
+            font-size:1.0em;
       }
 
       #icon_ibm{
@@ -795,5 +801,9 @@
 
       #loader{
            display:none;
+      }
+
+      #finish{
+            color:black;
       }
 

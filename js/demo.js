@@ -24,7 +24,6 @@ tour = {
     {
       target: 'file_select',
       title: 'Select a zip file to begin',
-      content: 'filler text',
       placement: 'left',
       arrowOffset: 10
     }/*,
