@@ -327,7 +327,7 @@
       #image_panel1{
             height:250px;
             width:300px;
-            background-image: url("cars.png");
+            background-image: url("cars.PNG");
             background-size:cover;
             margin-left:3em;
             margin-bottom:160px;
@@ -348,7 +348,7 @@
       #image_panel1_return{
             height:250px;
             width:300px;
-            background-image: url("cars.png");
+            background-image: url("cars.PNG");
             background-size:cover;
             margin-left:3em;
             margin-bottom:160px;
