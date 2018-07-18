@@ -443,13 +443,14 @@
 
       }
 
-      #browse_zip p{
+      #zip_caption{
             padding-bottom:2em;
             color:grey;
       }
 
       .bx--file-container{
       width:80%;
+      margin-top:2.7em;
       margin-left:1.5em;
       margin-right:1.5em;
       }
