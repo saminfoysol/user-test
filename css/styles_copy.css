@@ -327,7 +327,7 @@
       #image_panel1{
             height:250px;
             width:300px;
-            background-image: url("/cars.png");
+            background-image: url("cars.png");
             background-size:cover;
             margin-left:3em;
             margin-bottom:160px;
@@ -348,7 +348,7 @@
       #image_panel1_return{
             height:250px;
             width:300px;
-            background-image: url("/cars.png");
+            background-image: url("cars.png");
             background-size:cover;
             margin-left:3em;
             margin-bottom:160px;
@@ -401,7 +401,7 @@
       #image_panel3{
             height:410px;
             width:260px;
-            background-image: url("/outside.jpeg");
+            background-image: url("outside.jpeg");
             background-size:cover;
             display:inline-block;
             margin-left:2em;
@@ -418,7 +418,7 @@
       #image_panel3_return{
             height:410px;
             width:260px;
-            background-image: url("/outside.jpeg");
+            background-image: url("outside.jpeg");
             background-size:cover;
             display:inline-block;
             margin-left:2em;
