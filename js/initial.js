@@ -1,3 +1,10 @@
+ //check for global variable here
+if (sessionStorage.getItem("global_index") != null) {
+  console.log("work");
+    document.getElementById("image_panel1").style.visibility = "visible";
+    document.getElementById("image_panel2").style.visibility = "visible";
+    document.getElementById("image_panel3").style.visibility = "visible";
+  }
  document.getElementById("button-image").addEventListener("click", function(){
  	//console.log(document.getElementById("image_panel1").style.display);
     document.getElementById("image_panel1").style.visibility = "visible";

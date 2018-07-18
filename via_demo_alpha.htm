@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- saved from url=(0058)http://www.robots.ox.ac.uk/~vgg/software/via/via_demo.html -->
 <html lang="en" class="bx--body">
 
 <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -41,9 +40,8 @@
     This data is used in reporting of this programme grant.
     -->
 
-    <!-- CSS style definition -->
+  <!--Use of Carbon Components and Hopscotch-->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
-
   <link rel='stylesheet prefetch' href='https://unpkg.com/carbon-components@latest/css/carbon-components.css'>
   <link rel='stylesheet prefetch' href='https://unpkg.com/carbon-addons-bluemix@0.3.0/css/carbon-components.min.css'>
   <link href="css/hopscotch.css" rel="stylesheet"></link>
@@ -55,6 +53,7 @@
 
 <body>
 
+  <!--modal to serve as reminder for user to pick a class before drawing-->
   <div data-modal id="modal-1" class="bx--modal" tabindex="-1">
     <div class="bx--modal-container">
       <div class="bx--modal-header">
@@ -66,17 +65,16 @@
           </svg>
         </button>
       </div>
-
         <div class="bx--modal-content">
           <p>Input/Select a class to begin labelling objects on the image. </p>
         </div>
-
       <div class="bx--modal-footer">
         <button id = "modal-closer-2" class="bx--btn bx--btn--primary" type="button" aria-label="Danger" data-modal-primary-focus>OK</button>
       </div>
     </div>
   </div>
 
+  <!--IBM navbar-->
   <nav class="bx--cloud-header">
     <div class="bx--cloud-header__wrapper">
     <a href="#" class="bx--cloud-header-brand">
@@ -135,8 +133,7 @@
   </nav>
   <script src='https://unpkg.com/carbon-components@latest/scripts/carbon-components.js'></script>
 
-    <!--SAMIN get rid of this inline styling -->
-    <div id = "everything">
+  <div id = "everything">
     <div id = "path_panel">
       <p> Project   /   My First Project   / <a href ="https://projects.invisionapp.com/share/PFN1E2S39YB#/screens/309451097"> <span id = "finish"> Default Custom Model </span> </a> </p>
     </div>
@@ -147,10 +144,10 @@
         <div id = "save_info">
           <div id = "save_svg">
             <a href="via_demo_initial2.html">
-          <svg id = "save_button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><path class = "bar_logo" transform="rotate(180) translate(-32,-32)" d="M15.293 10.707L19.586 15H8v2h11.586l-4.293 4.293 1.414 1.414L23.414 16l-6.707-6.707z"/><path class = "bar_logo" d="M16 2C8.269 2 2 8.269 2 16s6.269 14 14 14 14-6.269 14-14S23.731 2 16 2zm0 26C9.383 28 4 22.617 4 16S9.383 4 16 4s12 5.383 12 12-5.383 12-12 12z"/>
-            <text class = "bar_logo" x = "47" y = "23">View All Images</text></svg>
-          </a>
-        </div>
+              <svg id = "save_button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><path class = "bar_logo" transform="rotate(180) translate(-32,-32)" d="M15.293 10.707L19.586 15H8v2h11.586l-4.293 4.293 1.414 1.414L23.414 16l-6.707-6.707z"/><path class = "bar_logo" d="M16 2C8.269 2 2 8.269 2 16s6.269 14 14 14 14-6.269 14-14S23.731 2 16 2zm0 26C9.383 28 4 22.617 4 16S9.383 4 16 4s12 5.383 12 12-5.383 12-12 12z"/>
+              <text class = "bar_logo" x = "47" y = "23">View All Images</text></svg>
+            </a>
+          </div>
           
         </div>
         
@@ -158,96 +155,94 @@
       
       <div id= "image_name"></div>
    
-    <svg style="position: absolute; width: 0; height: 0; overflow: hidden;" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-      <defs>
-        <symbol id="shape_rectangle">
+      <svg style="position: absolute; width: 0; height: 0; overflow: hidden;" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+        <defs>
+          <symbol id="shape_rectangle">
           <title>Rectangular region shape</title>
           <rect width="20" height="12" x="6" y="10" stroke-width="2"></rect>
-        </symbol>
-        <symbol id="shape_circle">
+          </symbol>
+          
+          <symbol id="shape_circle">
           <title>Circular region shape</title>
           <circle r="10" cx="16" cy="16" stroke-width="2"></circle>
-        </symbol>
-        <symbol id="shape_ellipse">
+          </symbol>
+        
+          <symbol id="shape_ellipse">
           <title>Elliptical region shape</title>
           <ellipse rx="12" ry="8" cx="16" cy="16" stroke-width="2"></ellipse>
-        </symbol>
-        <symbol id="shape_polygon">
+          </symbol>
+        
+          <symbol id="shape_polygon">
           <title>Polyline region shape</title>
           <path d="M 15.25,2.2372 3.625,11.6122 6,29.9872 l 20.75,-9.625 2.375,-14.75 z" stroke-width="2"></path>
-        </symbol>
-        <symbol id="shape_point">
+          </symbol>
+          
+          <symbol id="shape_point">
           <title>Point region shape</title>
           <circle r="3" cx="16" cy="16" stroke-width="2"></circle>
-        </symbol>
-      </defs>
-    </svg>
+          </symbol>
+        </defs>
+      </svg>
 
-    <div class="top_panel" id="ui_top_panel">
+      <div class="top_panel" id="ui_top_panel">
       <!-- Navigation menu -->
      <!-- end of #navbar -->
 
       <!-- Shortcut toolbar -->
-      <div class="toolbar">
+        <div class="toolbar">
 
-        <ul>
-          <li id= "loader">  
+          <ul>
+            <li id= "loader">  
               <a id = "sel_local_images" title="Load (or add) a set of images from local disk">Load Image</a>
-          </li>
+            </li>
 
-          <li id="toolbar_zoom_out" title="Zoom Out">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"><path class="bar_logo" d="M10 12l2-2 4 4-2 2zM12 6A6 6 0 1 0 0 6a6 6 0 0 0 12 0zm-2 1H2V5h8v2z"/></svg>
+            <li id="toolbar_zoom_out" title="Zoom Out">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"><path class="bar_logo" d="M10 12l2-2 4 4-2 2zM12 6A6 6 0 1 0 0 6a6 6 0 0 0 12 0zm-2 1H2V5h8v2z"/></svg>
             
-          </li>
-          <li id="toolbar_zoom_in" title="Zoom In"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"><path class = "bar_logo" d="M10 12l2-2 4 4-2 2zM12 6A6 6 0 1 0 0 6a6 6 0 0 0 12 0zm-2 1H7v3H5V7H2V5h3V2h2v3h3v2z"/></svg>
+            </li>
+            <li id="toolbar_zoom_in" title="Zoom In"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"><path class = "bar_logo" d="M10 12l2-2 4 4-2 2zM12 6A6 6 0 1 0 0 6a6 6 0 0 0 12 0zm-2 1H7v3H5V7H2V5h3V2h2v3h3v2z"/></svg>
             <a id="icon_ibm"></a></li>
           
-          <li id="toolbar_name_all_region" title="Name All Regions"> 
+            <li id="toolbar_name_all_region" title="Name All Regions"> 
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path transform="translate(0,-2)" class = "bar_logo" d="M8 6a2 2 0 1 0-.001 3.999A2 2 0 0 0 8 6z"/><path transform="translate(0,-2)" class="bar_logo" d="M8 4.5c3.128 0 5.122 1.942 6.218 3.5-1.096 1.558-3.09 3.5-6.218 3.5S2.878 9.558 1.782 8C2.878 6.442 4.872 4.5 8 4.5M8 3C4.41 3 1.678 5.133 0 8c1.678 2.867 4.41 5 8 5s6.322-2.133 8-5c-1.678-2.867-4.411-5-8-5z"/></svg>
-           </li>
-          <!--<li id= "toolbar_import">
-            <svg onclick="sel_local_data_file(&#39;annotations&#39;)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"><path transform="translate(0,1)" class ="bar_logo" d="M7.007 3.993L7.031 11h1.907l.048-7.014L11.5 6.5 13 5 8 0 3 5l1.5 1.5z"/><path transform="translate(0,1)" class="bar_logo" d="M14 10v3H2v-3H0v6h16v-6z"/></svg>
-         </li>
-         <li id="toolbar_download_csv">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><path transform="translate(0,-2)" class = "bar_logo" d="M24.708 13.207l-1.414-1.415L17 18.087V1.5h-2v16.585l-6.292-6.293-1.414 1.415 8.707 8.707z"/><path transform="translate(0,-2)" class = "bar_logo" d="M29 18.5v8H3v-8H1v12h30v-12z"/></svg>
-         </li>-->
+            </li>
 
-         <li id = "toolbar_deletion">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><path class = "bar_logo" d="M12 2h8v2h-8zM6 5v5h1v20h18V10h1V5H6zm17 23H9V12h14v16z"/>
-            <path class = "bar_logo" d="M11 14h1v12h-1zM14 14h1v12h-1zM17 14h1v12h-1zM20 14h1v12h-1z"/></svg>
+             <li id = "toolbar_deletion">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><path class = "bar_logo" d="M12 2h8v2h-8zM6 5v5h1v20h18V10h1V5H6zm17 23H9V12h14v16z"/>
+              <path class = "bar_logo" d="M11 14h1v12h-1zM14 14h1v12h-1zM17 14h1v12h-1zM20 14h1v12h-1z"/></svg>
 
-        <li id = "toolbar_draw">
-          <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-            viewBox="-209 291 32 32" style="enable-background:new -209 291 32 32;" xml:space="preserve">
+            <li id = "toolbar_draw">
+              <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+              viewBox="-209 291 32 32" style="enable-background:new -209 291 32 32;" xml:space="preserve">
           
-        <path d="M-357,295l3-3l6,6l-3,3L-357,295z M-374,312l6,6l15-15l-6-6L-374,312z M-368,315.2l-3.2-3.2l12.2-12.2l3.2,3.2L-368,315.2z
-            M-378,322l5-2l-3-3L-378,322z"/>
-        <g transform="translate(0,-8)">
-        <path id = "draw_path_1" class="st0" d="M-195.5,309.1l8-8l3,3l-8,8L-195.5,309.1z M-186.5,300.1l2-2l3,3l-2,2L-186.5,300.1z M-197.5,314.1l3-1l-2-2
-          L-197.5,314.1z"/>
-        <polyline id = "draw_path_2" class="st1" points="-187,309.4 -187,318.2 -202,318.2 -202,303.1 -193.1,303.1  "/>
-        </g>
-        </svg>
-        </li>
-        </ul>
-      </div> <!-- endof #toolbar -->
-      <input type="file" id="invisible_file_input" multiple="" name="files[]">
-    </div> <!-- endof #top_panel -->
+              <path d="M-357,295l3-3l6,6l-3,3L-357,295z M-374,312l6,6l15-15l-6-6L-374,312z M-368,315.2l-3.2-3.2l12.2-12.2l3.2,3.2L-368,315.2z
+              M-378,322l5-2l-3-3L-378,322z"/>
+              <g transform="translate(0,-8)">
+              <path id = "draw_path_1" class="st0" d="M-195.5,309.1l8-8l3,3l-8,8L-195.5,309.1z M-186.5,300.1l2-2l3,3l-2,2L-186.5,300.1z M-197.5,314.1l3-1l-2-2
+              L-197.5,314.1z"/>
+              <polyline id = "draw_path_2" class="st1" points="-187,309.4 -187,318.2 -202,318.2 -202,303.1 -193.1,303.1  "/>
+              </g>
+              </svg>
+            </li>
+          </ul>
+        </div> <!-- endof #toolbar -->
+        <input type="file" id="invisible_file_input" multiple="" name="files[]">
+      </div> <!-- endof #top_panel -->
 
     <!-- Middle Panel contains a left-sidebar and image display areas -->
-    <div id="main_container">
-    <div class="middle_panel">
+      <div id="main_container">
+        <div class="middle_panel">
 
-      <!-- Main display area: contains image canvas, ... -->
-      <div id="display_area">
-        <div id="canvas_panel">
-          <canvas id="image_canvas" height="427" width="640"></canvas>
-          <canvas id="region_canvas" height="427" width="640">Sorry, your browser does not support HTML5 Canvas functionality which is required for this application.</canvas>
-        </div> 
-          <div class="text_panel" id="via_start_info_panel"></div>
+        <!-- Main display area: contains image canvas, ... -->
+          <div id="display_area">
+            <div id="canvas_panel">
+              <canvas id="image_canvas" height="427" width="640"></canvas>
+               <canvas id="region_canvas" height="427" width="640">Sorry, your browser does not support HTML5 Canvas functionality which is required for this application.</canvas>
+            </div> 
+            <div class="text_panel" id="via_start_info_panel"></div>
 
-          <div class="text_panel" id="license_panel">
-            <pre>              Copyright (c) 2016-2017, Abhishek Dutta, Visual Geometry Group, Oxford University.
+            <div class="text_panel" id="license_panel">
+              <pre>              Copyright (c) 2016-2017, Abhishek Dutta, Visual Geometry Group, Oxford University.
               All rights reserved.
 
               Redistribution and use in source and binary forms, with or without
@@ -269,58 +264,52 @@
               CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
               ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
               POSSIBILITY OF SUCH DAMAGE.
-            </pre>
-          </div>
+              </pre>
+            </div>
 
+          </div>
         </div>
       </div>
-    </div>
 
-    <div id="prev_button">
-      <svg id = "save_button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180"><path class = "bar_logo" transform="rotate(180) translate(-32,-32)" d="M15.293 10.707L19.586 15H8v2h11.586l-4.293 4.293 1.414 1.414L23.414 16l-6.707-6.707z"/><path class = "bar_logo" d="M16 2C8.269 2 2 8.269 2 16s6.269 14 14 14 14-6.269 14-14S23.731 2 16 2zm0 26C9.383 28 4 22.617 4 16S9.383 4 16 4s12 5.383 12 12-5.383 12-12 12z"/>
-      <text class = "bar_logo" x = "37" y = "23">Previous Image</text></svg>        
-    </div>
+      <div id="prev_button">
+        <svg id = "save_button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180"><path class = "bar_logo" transform="rotate(180) translate(-32,-32)" d="M15.293 10.707L19.586 15H8v2h11.586l-4.293 4.293 1.414 1.414L23.414 16l-6.707-6.707z"/><path class = "bar_logo" d="M16 2C8.269 2 2 8.269 2 16s6.269 14 14 14 14-6.269 14-14S23.731 2 16 2zm0 26C9.383 28 4 22.617 4 16S9.383 4 16 4s12 5.383 12 12-5.383 12-12 12z"/>
+        <text class = "bar_logo" x = "37" y = "23">Previous Image</text></svg>        
+      </div>
 
-    <div id="next_button">
-      <svg id = "save_button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180"><text class = "bar_logo" x = "2" y = "23">Next Image</text><path class = "bar_logo" transform = "translate(90,0)" d="M15.293 10.707L19.586 15H8v2h11.586l-4.293 4.293 1.414 1.414L23.414 16l-6.707-6.707z"/><path transform = "translate(90,0)" class = "bar_logo" d="M16 2C8.269 2 2 8.269 2 16s6.269 14 14 14 14-6.269 14-14S23.731 2 16 2zm0 26C9.383 28 4 22.617 4 16S9.383 4 16 4s12 5.383 12 12-5.383 12-12 12z"/>
-      </svg>        
-    </div>
+      <div id="next_button">
+        <svg id = "save_button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180"><text class = "bar_logo" x = "2" y = "23">Next Image</text><path class = "bar_logo" transform = "translate(90,0)" d="M15.293 10.707L19.586 15H8v2h11.586l-4.293 4.293 1.414 1.414L23.414 16l-6.707-6.707z"/><path transform = "translate(90,0)" class = "bar_logo" d="M16 2C8.269 2 2 8.269 2 16s6.269 14 14 14 14-6.269 14-14S23.731 2 16 2zm0 26C9.383 28 4 22.617 4 16S9.383 4 16 4s12 5.383 12 12-5.383 12-12 12z"/>
+        </svg>        
+      </div>
 
 
-    <!-- to show status messages -->
-    <div id="message_panel"> </div>
+      <!-- to show status messages -->
+      <div id="message_panel"> </div>
 
-    <!-- this vertical spacer is needed to allow scrollbar to show
+      <!-- this vertical spacer is needed to allow scrollbar to show
          items like Keyboard Shortcut hidden under the attributes panel -->
-    <div id="vertical_space"></div>
-  </div>
-
-  <div id = "maindivision2">
-
-
-  <div id="leftsidebar">
-
-    <!--SAMIN adding form to better mirror the interface on the design sketches -->
-    <div id = "classes">
-
-      <div class="wrapper" style="background: white;">
-    
-
-<div class="bx--form-item">
-  <label for="add_class" id = "classes_label" class="bx--label">Classes (0)</label>
-  <div id = "barz">
-
-  <input id="add_class" type="text" name = "add_class" class="bx--text-input" placeholder="Input classes here">
-
-  <button id = "submit_add" class="bx--btn"  type="button">
-  <svg id="class_adder" class="bx--btn__icon" width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"> +<path d="M7 7H4v2h3v3h2V9h3V7H9V4H7v3zm1 9A8 8 0 1 1 8 0a8 8 0 0 1 0 16z" fill-rule="evenodd" />
-   </svg>
-  </button>
-  </div>
-</div>
-  </div>
-    
+      <div id="vertical_space"></div>
     </div>
+
+    <div id = "maindivision2">
+      <div id="leftsidebar">
+
+      <!--adding form to better mirror the interface on the design sketches -->
+        <div id = "classes">
+          <div class="wrapper" style="background: white;">
+            <div class="bx--form-item">
+              <label for="add_class" id = "classes_label" class="bx--label">Classes (0)</label>
+              <div id = "barz">
+
+                <input id="add_class" type="text" name = "add_class" class="bx--text-input" placeholder="Input classes here">
+
+                  <button id = "submit_add" class="bx--btn"  type="button">
+                    <svg id="class_adder" class="bx--btn__icon" width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"> +<path d="M7 7H4v2h3v3h2V9h3V7H9V4H7v3zm1 9A8 8 0 1 1 8 0a8 8 0 0 1 0 16z" fill-rule="evenodd" />
+                    </svg>
+                  </button>
+              </div>
+            </div>
+          </div>
+        </div>
 
       </div>
       <div id = "classes_info">
@@ -329,9 +318,9 @@
     </div>
   </div>
     <script src="js/via_demo.js"></script>
-    <script src="js/via_custom.js"></script>
+    <script src="js/via_main.js"></script>
     <script src="js/hopscotch.js"></script>
-    <script src="js/demo2.js"></script>
+    <script src="js/hopscotch_demo2.js"></script>
 
 
 </body></html>

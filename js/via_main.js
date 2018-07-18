@@ -55,6 +55,7 @@
 
 "use strict";
 
+var info;
 var VIA_VERSION      = '1.0.5';
 var VIA_NAME         = 'VGG Image Annotator';
 var VIA_SHORT_NAME   = 'VIA';
@@ -79,15 +80,15 @@ var VIA_POLYGON_RESIZE_VERTEX_OFFSET    = 100;
 var VIA_CANVAS_DEFAULT_ZOOM_LEVEL_INDEX = 3;
 var VIA_CANVAS_ZOOM_LEVELS = [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 2.5, 3.0, 4, 5];
 
-var VIA_THEME_REGION_BOUNDARY_WIDTH = 4;
-var VIA_THEME_BOUNDARY_LINE_COLOR   = "#1a1a1a";
-var VIA_THEME_BOUNDARY_FILL_COLOR   = "#aaeeff";
-var VIA_THEME_SEL_REGION_FILL_COLOR = "#808080";
-var VIA_THEME_SEL_REGION_FILL_BOUNDARY_COLOR = "#000000";
+var VIA_THEME_REGION_BOUNDARY_WIDTH = 9;
+var VIA_THEME_BOUNDARY_LINE_COLOR   = "#3FD4BA";
+var VIA_THEME_BOUNDARY_FILL_COLOR   = "#3FD4BA";
+var VIA_THEME_SEL_REGION_FILL_COLOR = "transparent";
+var VIA_THEME_SEL_REGION_FILL_BOUNDARY_COLOR = "#F21890";
 var VIA_THEME_SEL_REGION_OPACITY    = 0.5;
 var VIA_THEME_MESSAGE_TIMEOUT_MS    = 2500;
 var VIA_THEME_ATTRIBUTE_VALUE_FONT  = '10pt Sans';
-var VIA_THEME_CONTROL_POINT_COLOR   = '#ff0000';
+var VIA_THEME_CONTROL_POINT_COLOR   = 'black';
 
 var VIA_CSV_SEP        = ',';
 var VIA_CSV_QUOTE_CHAR = '"';
@@ -132,19 +133,22 @@ var _via_is_user_updating_attribute_name  = false;
 var _via_is_user_updating_attribute_value = false;
 var _via_is_user_adding_attribute_name    = false;
 var _via_is_loaded_img_list_visible  = false;
+//SAMIN 7/18 color array for rotation
+var _via_color_array = ["#3FD4BA","#fd00ff","#6dd8dd","#ff0202","#f67c00","#ffb7d5"];
 //SAMIN trying to get rid of panel
 //var _via_is_attributes_panel_visible = false;
 //var _via_is_reg_attr_panel_visible   = false;
 //var _via_is_file_attr_panel_visible  = false;
 var _via_is_canvas_zoomed            = false;
 var _via_is_loading_current_image    = false;
-var _via_is_region_id_visible        = true;
+var _via_is_region_id_visible        = false;
 var _via_is_region_boundary_visible  = true;
 var _via_is_ctrl_pressed             = false;
 
 // region
 //SAMIN initialized start shape as none so user can't draw until they pick a class
-var _via_current_shape             = VIA_REGION_SHAPE.NONE;
+//SAMIN 7/9 back to rect so we can better deal with debugging
+var _via_current_shape             = VIA_REGION_SHAPE.RECT;
 var _via_current_polygon_region_id = -1;
 var _via_user_sel_region_id        = -1;
 var _via_click_x0 = 0; var _via_click_y0 = 0;
@@ -154,9 +158,16 @@ var _via_copied_image_regions = [];
 var _via_region_edge          = [-1, -1];
 var _via_current_x = 0; var _via_current_y = 0;
 
+var _via_changing_class = false;
+var _via_names_shown = false;
+
 
 // message
 var _via_message_clear_timer;
+
+//7/2 SAMIN to save data
+//7/6 ZOOM edge cases
+var _via_first_load = true;
 
 // attributes
 //SAMIN added set of the class names
@@ -222,18 +233,17 @@ function ImageRegion() {
 // Initialization routine
 //
 function _via_init() {
-  console.log(VIA_NAME);
-  show_message(VIA_NAME + ' (' + VIA_SHORT_NAME + ') version ' + VIA_VERSION +
-               '. Ready !', 2*VIA_THEME_MESSAGE_TIMEOUT_MS);
+  
   show_home_panel();
   //SAMIN place event handlers here to avoid inline js
   document.getElementById("sel_local_images").addEventListener("click", function(){
     sel_local_images();
+
   });
-  document.getElementById("toolbar_prev_img").addEventListener("click", function(){
+  document.getElementById("prev_button").addEventListener("click", function(){
     move_to_prev_image();
   });
-  document.getElementById("toolbar_next_img").addEventListener("click", function(){
+  document.getElementById("next_button").addEventListener("click", function(){
     move_to_next_image();
   });
   document.getElementById("toolbar_zoom_out").addEventListener("click", function(){
@@ -242,19 +252,21 @@ function _via_init() {
   document.getElementById("toolbar_zoom_in").addEventListener("click", function(){
     zoom_in();
   });
-  document.getElementById("toolbar_zoom_reset").addEventListener("click", function(){
-    reset_zoom_level();
+
+  document.getElementById("toolbar_name_all_region").addEventListener("click", function(){
+    toggle_region_id_visibility();
+    if (_via_names_shown){
+      _via_names_shown = false;
+    }
+    else{
+      _via_names_shown = true;
+    }  
   });
-  document.getElementById("toolbar_copy_region").addEventListener("click", function(){
-    copy_sel_regions();
-  });
-  document.getElementById("toolbar_paste_region").addEventListener("click", function(){
-    paste_sel_regions();
-  });
-  document.getElementById("toolbar_sel_all_region").addEventListener("click", function(){
-    sel_all_regions();
-  });
-  document.getElementById("toolbar_del_region").addEventListener("click", function(){
+
+  /*document.getElementById("toolbar_download_csv").addEventListener("click", function(){
+    download_all_region_data('csv');
+  });*/
+  document.getElementById("toolbar_deletion").addEventListener("click", function(){
     del_sel_regions();
   });
   document.getElementById("add_class").addEventListener("focus", function(){
@@ -267,12 +279,25 @@ function _via_init() {
     addClass(document.getElementById('add_class').value);
   });
 
-  /*document.getElementById("region_shape_rect").addEventListener("click", function(){
-    select_region_shape(&#39;polygon&#39;);
-  });*/
-  //id = "sel_local_images" onclick="sel_local_images()"
+  document.getElementById("save_button").addEventListener("click", function(){
+    //7/5 Samin edit the metadata to reflect accurate color changes
+    for (var x in _via_img_metadata){
+      for (var i = 0; i < _via_img_metadata[x].regions.length; i++){
+        _via_img_metadata[x].regions[i].region_attributes["color"] = _via_class_names.get(_via_img_metadata[x].regions[i].region_attributes["name"])[1];
+    //add metadata info to map
+    
+      }
+    }
+    sessionStorage.setItem("page_data", JSON.stringify(_via_img_metadata));
+  });
 
+  document.getElementById("modal-closer-1").addEventListener("click", function(){
+    document.getElementById("modal-1").classList.remove("is-visible");
+  });
 
+  document.getElementById("modal-closer-2").addEventListener("click", function(){
+    document.getElementById("modal-1").classList.remove("is-visible");
+  });
 
   _via_is_local_storage_available = check_local_storage();
   if (_via_is_local_storage_available) {
@@ -288,7 +313,6 @@ function _via_init() {
     }, 100);
   }
 }
-
 //
 // Handlers for top navigation bar
 //
@@ -296,21 +320,17 @@ function show_home_panel() {
   if (_via_current_image_loaded) {
     show_all_canvas();
     set_all_text_panel_display('none');
-
-  } else {
-    var start_info = '<p><a title="Load or Add Images" style="cursor: pointer; color: blue;" onclick="sel_local_images()">Load images</a> to start annotation or, see <a title="Getting started with VGG Image Annotator" style="cursor: pointer; color: blue;" onclick="show_getting_started_panel()">Getting Started</a>.</p>';
-    clear_image_display_area();
-    document.getElementById('via_start_info_panel').innerHTML = start_info;
-    document.getElementById('via_start_info_panel').style.display = 'block';
-  }
-
+  } 
 }
+
 function sel_local_images() {
   // source: https://developer.mozilla.org/en-US/docs/Using_files_from_web_applications
   if (invisible_file_input) {
+    console.log(invisible_file_input);
     invisible_file_input.accept   = '.jpg,.jpeg,.png,.bmp';
     invisible_file_input.onchange = store_local_img_ref;
     invisible_file_input.click();
+
   }
 }
 function download_all_region_data(type) {
@@ -322,8 +342,7 @@ function download_all_region_data(type) {
 
   if ( all_region_data_blob.size > (2*1024*1024) &&
        type === 'csv' ) {
-    show_message('CSV file size is ' + (all_region_data_blob.size/(1024*1024)) +
-                 ' MB. We advise you to instead download as JSON');
+
   } else {
     save_data_to_local_file(all_region_data_blob, 'via_region_data.'+type);
   }
@@ -503,6 +522,7 @@ function import_annotations_from_file(event) {
   }
 }
 function import_annotations_from_csv(data) {
+  //SAMIN 6/21 fix import to update map
   if ( data === '' || typeof(data) === 'undefined') {
     return;
   }
@@ -624,6 +644,8 @@ function import_annotations_from_csv(data) {
       }
     }
   }
+  //SAMIN 6/21 insert function call to repopulate map, appropriate constants, as well as the side navbar
+  repopulate();
   show_message('Import Summary : [' + region_import_count + '] regions, ' +
                '[' + malformed_csv_lines_count  + '] malformed csv lines.');
 
@@ -954,7 +976,7 @@ function show_image(image_index) {
   if (_via_is_loading_current_image) {
     return;
   }
-
+  //7/13 update show image appropriately
   var img_id = _via_image_id_list[image_index];
   if ( !_via_img_metadata.hasOwnProperty(img_id)) {
     return;
@@ -976,13 +998,13 @@ function show_image(image_index) {
   img_reader.addEventListener( "error", function() {
     _via_is_loading_current_image = false;
     img_loading_spinbar(false);
-    show_message("Error loading image " + img_filename + " !");
+    //show_message("Error loading image " + img_filename + " !");
   }, false);
 
   img_reader.addEventListener( "abort", function() {
     _via_is_loading_current_image = false;
     img_loading_spinbar(false);
-    show_message("Aborted loading image " + img_filename + " !");
+    //show_message("Aborted loading image " + img_filename + " !");
   }, false);
 
   img_reader.addEventListener( "load", function() {
@@ -991,13 +1013,13 @@ function show_image(image_index) {
     _via_current_image.addEventListener( "error", function() {
       _via_is_loading_current_image = false;
       img_loading_spinbar(false);
-      show_message("Error loading image " + img_filename + " !");
+      //show_message("Error loading image " + img_filename + " !");
     }, false);
 
     _via_current_image.addEventListener( "abort", function() {
       _via_is_loading_current_image = false;
       img_loading_spinbar(false);
-      show_message("Aborted loading image " + img_filename + " !");
+      //show_message("Aborted loading image " + img_filename + " !");
     }, false);
 
     _via_current_image.addEventListener( "load", function() {
@@ -1108,12 +1130,14 @@ function _via_load_canvas_regions() {
       var width  = regions[i].shape_attributes['width']  / _via_canvas_scale;
       var height = regions[i].shape_attributes['height'] / _via_canvas_scale;
       var name = regions[i].region_attributes['name'];
+      var color = _via_class_names.get(name)[1];
 
       _via_canvas_regions[i].shape_attributes['x'] = Math.round(x);
       _via_canvas_regions[i].shape_attributes['y'] = Math.round(y);
       _via_canvas_regions[i].shape_attributes['width'] = Math.round(width);
       _via_canvas_regions[i].shape_attributes['height'] = Math.round(height);
       _via_canvas_regions[i].region_attributes['name'] = name;
+      _via_canvas_regions[i].region_attributes['color'] = color;
       break;
 
     case VIA_REGION_SHAPE.CIRCLE:
@@ -1159,6 +1183,96 @@ function _via_load_canvas_regions() {
   //SAMIN call toggle reg_attr_panel after loading the regions instead of at the on click. Goal is to change this function from toggle to just appearing on the side.
   //SAMIN attr remove
   //toggle_reg_attr_panel();
+  //7/2 this is where we load our saved data
+  //7/6 debugging
+  if (sessionStorage.getItem("page_data") == null) {
+    _via_first_load = false;
+  }
+  if (_via_first_load){
+    info = JSON.parse(sessionStorage.getItem("page_data"));
+    //manually add the metadata into what we have
+    var new_metadata = new ImageMetadata;
+    new_metadata["filename"] = "cars.png";
+    new_metadata["fileref"] = "cars.png";
+    new_metadata["base64_img_data"] = "cars.png";
+    new_metadata["file_attributes"] = info["cars.png62201"]["file_attributes"];
+    new_metadata["size"] = info["cars.png62201"]["size"];
+
+    //sessionStorage.setItem("global_index", 0);
+    for (var i = 0; i < info["cars.png62201"]["regions"].length; i++){
+      var new_region = new ImageRegion;
+      new_region["is_user_selected"] = info["cars.png62201"]["regions"][i]["is_user_selected"];
+      new_region["region_attributes"] = info["cars.png62201"]["regions"][i]["region_attributes"];
+      new_region["shape_attributes"] = info["cars.png62201"]["regions"][i]["shape_attributes"];
+      new_metadata["regions"].push(new_region);
+      //canvas region should be updated based on the image that we load on 7/13
+      if(sessionStorage.getItem("global_index") == 0){
+        _via_canvas_regions.push(new_region);
+      }
+      //_via_canvas_regions.push(new_region);
+    }
+
+    _via_img_metadata["cars.png62201"] = new_metadata;
+
+    var new_metadata = new ImageMetadata;
+    new_metadata["filename"] = "lot.jpeg";
+    new_metadata["fileref"] = "lot.jpeg";
+    new_metadata["base64_img_data"] = "lot.jpeg";
+    new_metadata["file_attributes"] = info["lot.jpeg71862"]["file_attributes"];
+    new_metadata["size"] = info["lot.jpeg71862"]["size"];
+
+
+    for (var i = 0; i < info["lot.jpeg71862"]["regions"].length; i++){
+      var new_region = new ImageRegion;
+      new_region["is_user_selected"] = info["lot.jpeg71862"]["regions"][i]["is_user_selected"];
+      new_region["region_attributes"] = info["lot.jpeg71862"]["regions"][i]["region_attributes"];
+      new_region["shape_attributes"] = info["lot.jpeg71862"]["regions"][i]["shape_attributes"];
+      new_metadata["regions"].push(new_region);
+      //_via_canvas_regions.push(new_region);
+
+      if(sessionStorage.getItem("global_index") == 1){
+        
+        _via_canvas_regions.push(new_region);
+      }
+
+
+    }
+
+    _via_img_metadata["lot.jpeg71862"] = new_metadata;
+
+    var new_metadata = new ImageMetadata;
+    new_metadata["filename"] = "outside.jpeg";
+    new_metadata["fileref"] = "outside.jpeg";
+    new_metadata["base64_img_data"] = "outside.jpeg";
+    new_metadata["file_attributes"] = info["outside.jpeg21513"]["file_attributes"];
+    new_metadata["size"] = info["outside.jpeg21513"]["size"];
+
+
+    for (var i = 0; i < info["outside.jpeg21513"]["regions"].length; i++){
+      var new_region = new ImageRegion;
+      new_region["is_user_selected"] = info["outside.jpeg21513"]["regions"][i]["is_user_selected"];
+      new_region["region_attributes"] = info["outside.jpeg21513"]["regions"][i]["region_attributes"];
+      new_region["shape_attributes"] = info["outside.jpeg21513"]["regions"][i]["shape_attributes"];
+      new_metadata["regions"].push(new_region);
+      //_via_canvas_regions.push(new_region);
+
+      if(sessionStorage.getItem("global_index") == 2){
+        
+        _via_canvas_regions.push(new_region);
+      }
+    }
+
+    _via_img_metadata["outside.jpeg21513"] = new_metadata;
+
+
+    repopulate();
+    _via_redraw_reg_canvas();
+    show_all_canvas();
+
+    _via_is_window_resized = true;
+    show_image(_via_image_index);
+    _via_first_load = false;
+  }
 }
 
 // updates currently selected region shape
@@ -1177,24 +1291,24 @@ function select_region_shape(sel_shape_name) {
   case VIA_REGION_SHAPE.RECT: // Fall-through
   case VIA_REGION_SHAPE.CIRCLE: // Fall-through
   case VIA_REGION_SHAPE.ELLIPSE:
-    show_message('Press single click and drag mouse to draw ' +
-                 _via_current_shape + ' region');
+    //show_message('Press single click and drag mouse to draw ' +
+                 //_via_current_shape + ' region');
     break;
 
   case VIA_REGION_SHAPE.POLYGON:
     _via_is_user_drawing_polygon = false;
     _via_current_polygon_region_id = -1;
 
-    show_message('Press single click to define polygon vertices and ' +
-                 'click first vertex to close path');
+    //show_message('Press single click to define polygon vertices and ' +
+                 //'click first vertex to close path');
     break;
 
   case VIA_REGION_SHAPE.POINT:
-    show_message('Press single click to define points (or landmarks)');
+    //show_message('Press single click to define points (or landmarks)');
     break;
 
   default:
-    show_message('Unknown shape selected!');
+    //show_message('Unknown shape selected!');
     break;
   }
 }
@@ -1223,51 +1337,6 @@ function hide_all_canvas() {
   canvas_panel.style.display = 'none';
 }
 
-/*
-SAMIN
-function toggle_img_list(panel) {
-  if ( typeof panel === 'undefined' ) {
-    // invoked from accordion in the top navigation toolbar
-    panel = document.getElementById('loaded_img_panel');
-  }
-  panel.classList.toggle('active');
-
-  if (_via_is_loaded_img_list_visible) {
-    img_list_panel.style.display    = 'none';
-    _via_is_loaded_img_list_visible = false;
-  } else {
-    _via_is_loaded_img_list_visible = true;
-    show_img_list();
-  }
-}
-
-function show_img_list() {
-  if (_via_img_count === 0) {
-    show_message("Please load some images first!");
-    return;
-  }
-
-  if(_via_is_loaded_img_list_visible && _via_current_image_loaded) {
-    if ( _via_reload_img_table ) {
-      reload_img_table();
-      _via_reload_img_table = false;
-    }
-    img_list_panel.innerHTML = _via_loaded_img_table_html.join('');
-    img_list_panel.style.display = 'block';
-
-    // scroll img_list_panel automatically to show the current image filename
-    var panel        = document.getElementById('img_list_panel');
-    var html_img_id  = 'flist' + _via_image_index;
-    var sel_file     = document.getElementById(html_img_id);
-    var panel_height = panel.offsetHeight;
-    if ( sel_file.offsetTop < panel.scrollTop ) {
-      panel.scrollTop = sel_file.offsetTop;
-    }
-    if ( sel_file.offsetTop > panel_height/2 ) {
-      panel.scrollTop = sel_file.offsetTop - panel_height/2;
-    }
-  }
-}*/
 
 function reload_img_table() {
   _via_loaded_img_fn_list = [];
@@ -1349,26 +1418,12 @@ function select_only_region(region_id) {
   set_region_select_state(region_id, true);
   _via_is_region_selected = true;
   _via_user_sel_region_id = region_id;
+
 }
 function set_region_select_state(region_id, is_selected) {
   _via_canvas_regions[region_id].is_user_selected = is_selected;
   _via_img_metadata[_via_image_id].regions[region_id].is_user_selected = is_selected;
 }
-/*
-SAMIN
-function toggle_accordion_panel(e) {
-  e.classList.toggle('active');
-  e.nextElementSibling.classList.toggle('show');
-}
-
-function img_loading_spinbar(show) {
-  var panel = document.getElementById('loaded_img_panel');
-  if ( show ) {
-    //panel.innerHTML = 'Loaded Images &nbsp;&nbsp;<div class="loading_spinbox"></div>';
-  } else {
-    //panel.innerHTML = 'Loaded Images &nbsp;&nbsp;';
-  }
-}*/
 
 function toggle_leftsidebar() {
   var leftsidebar = document.getElementById('leftsidebar');
@@ -1402,11 +1457,6 @@ _via_reg_canvas.addEventListener('dblclick', function(e) {
 
   if (region_id !== -1) {
     // user clicked inside a region, show attribute panel
-    /*
-SAMIN
-    if(!_via_is_reg_attr_panel_visible) {
-      toggle_reg_attr_panel();
-    }*/
   }
 
 }, false);
@@ -1416,13 +1466,17 @@ _via_reg_canvas.addEventListener('mousedown', function(e) {
   if (_via_current_shape == VIA_REGION_SHAPE.NONE){
     return;
   }
+
   _via_click_x0 = e.offsetX; _via_click_y0 = e.offsetY;
   _via_region_edge = is_on_region_corner(_via_click_x0, _via_click_y0);
   var region_id = is_inside_region(_via_click_x0, _via_click_y0);
 
   if ( _via_is_region_selected ) {
+    
     // check if user clicked on the region boundary
     if ( _via_region_edge[1] > 0 ) {
+      //
+
       if ( !_via_is_user_resizing_region ) {
         // resize region
         if ( _via_region_edge[0] !== _via_user_sel_region_id ) {
@@ -1431,9 +1485,17 @@ _via_reg_canvas.addEventListener('mousedown', function(e) {
         _via_is_user_resizing_region = true;
       }
     } else {
+      //7/9
+      if (_via_current_update_attribute_name == ""){
+        //7/10
+          //document.getElementById("modal-1").classList.add("is-visible");
+          var yes = true;
+      }
+      else{
       var yes = is_inside_this_region(_via_click_x0,
                                       _via_click_y0,
                                       _via_user_sel_region_id);
+    }
       if (yes) {
         if( !_via_is_user_moving_region ) {
           _via_is_user_moving_region = true;
@@ -1474,6 +1536,7 @@ _via_reg_canvas.addEventListener('mouseup', function(e) {
   if (_via_current_shape == VIA_REGION_SHAPE.NONE){
     return;
   }
+
   _via_click_x1 = e.offsetX; _via_click_y1 = e.offsetY;
 
   var click_dx = Math.abs(_via_click_x1 - _via_click_x0);
@@ -1489,6 +1552,10 @@ _via_reg_canvas.addEventListener('mouseup', function(e) {
 
     if (Math.abs(move_x) > VIA_MOUSE_CLICK_TOL ||
         Math.abs(move_y) > VIA_MOUSE_CLICK_TOL) {
+
+      if (_via_img_metadata[_via_image_id].regions[_via_user_sel_region_id] == undefined){
+        return;
+      }
 
       var image_attr = _via_img_metadata[_via_image_id].regions[_via_user_sel_region_id].shape_attributes;
 
@@ -1553,9 +1620,6 @@ _via_reg_canvas.addEventListener('mouseup', function(e) {
           toggle_all_regions_selection(false);
         }
         set_region_select_state(nested_region_id, true);
-        /*
-SAMIN
-        update_attributes_panel();*/
       }
     }
     _via_redraw_reg_canvas();
@@ -1675,6 +1739,7 @@ SAMIN
   // denotes a single click (= mouse down + mouse up)
   if ( click_dx < VIA_MOUSE_CLICK_TOL ||
        click_dy < VIA_MOUSE_CLICK_TOL ) {
+
     // if user is already drawing polygon, then each click adds a new point
     if ( _via_is_user_drawing_polygon ) {
       var canvas_x0 = Math.round(_via_click_x0);
@@ -1727,9 +1792,6 @@ SAMIN
         select_only_region(_via_current_polygon_region_id);
 
         _via_current_polygon_region_id = -1;
-        /*
-        SAMIN
-        update_attributes_panel();*/
         save_current_data_to_browser_cache();
       } else {
         // user clicked on a new polygon point
@@ -1750,19 +1812,13 @@ SAMIN
           toggle_all_regions_selection(false);
         }
         set_region_select_state(region_id, true);
-        /*
-        SAMIN
-        update_attributes_panel();*/
-        //show_message('Click and drag to move or resize the selected region');
+
       } else {
         if ( _via_is_user_drawing_region ) {
           // clear all region selection
           _via_is_user_drawing_region = false;
           _via_is_region_selected     = false;
           toggle_all_regions_selection(false);
-
-          /*SAMIN
-          update_attributes_panel();*/
         } else {
           switch (_via_current_shape) {
           case VIA_REGION_SHAPE.POLYGON:
@@ -1790,10 +1846,6 @@ SAMIN
             canvas_point_region.shape_attributes['cx'] = Math.round(_via_click_x0);
             canvas_point_region.shape_attributes['cy'] = Math.round(_via_click_y0);
             _via_canvas_regions.push(canvas_point_region);
-
-            /*
-            SAMIN
-            update_attributes_panel();*/
             save_current_data_to_browser_cache();
             break;
           }
@@ -1844,6 +1896,11 @@ SAMIN
          region_dy > VIA_REGION_MIN_DIM ) { // avoid regions with 0 dim
         switch(_via_current_shape) {
         case VIA_REGION_SHAPE.RECT:
+          if (_via_current_update_attribute_name == ""){
+            //7/10
+            document.getElementById("modal-1").classList.add("is-visible");
+          break;
+      }
           var x = Math.round(region_x0 * _via_canvas_scale);
           var y = Math.round(region_y0 * _via_canvas_scale);
           var width  = Math.round(region_dx * _via_canvas_scale);
@@ -1856,9 +1913,12 @@ SAMIN
 
           //SAMIN added to pick the name after clicking a button
           original_img_region.region_attributes['name'] = _via_current_update_attribute_name;
+          original_img_region.region_attributes['color'] = _via_class_names.get(_via_current_update_attribute_name)[1];
           //add count in the class names map
+          var class_value_count = (_via_class_names.get(_via_current_update_attribute_name))[0];
+          var class_value_color = (_via_class_names.get(_via_current_update_attribute_name))[1];
 
-          _via_class_names.set(_via_current_update_attribute_name, (_via_class_names.get(_via_current_update_attribute_name))+1)
+          _via_class_names.set(_via_current_update_attribute_name, [class_value_count+1, class_value_color]);
 
           //SAMIN update count
           //console.log(_via_current_update_attribute_name + "_num");
@@ -1873,6 +1933,7 @@ SAMIN
           canvas_img_region.shape_attributes['width'] = Math.round( width / _via_canvas_scale );
           canvas_img_region.shape_attributes['height'] = Math.round( height / _via_canvas_scale );
           canvas_img_region.region_attributes['name'] = _via_current_update_attribute_name;
+          canvas_img_region.region_attributes['color'] = _via_class_names.get(_via_current_update_attribute_name)[1];
           //SAMIN come back here
 
           _via_img_metadata[_via_image_id].regions.push(original_img_region);
@@ -1943,13 +2004,15 @@ _via_reg_canvas.addEventListener("mouseover", function(e) {
   // change the mouse cursor icon
   _via_redraw_reg_canvas();
   _via_reg_canvas.focus();
+
+  //6/20
 });
 
 _via_reg_canvas.addEventListener('mousemove', function(e) {
   if ( !_via_current_image_loaded ) {
     return;
   }
-
+  
   _via_current_x = e.offsetX; _via_current_y = e.offsetY;
 
   if ( _via_is_region_selected ) {
@@ -1989,11 +2052,19 @@ _via_reg_canvas.addEventListener('mousemove', function(e) {
           _via_reg_canvas.style.cursor = "crosshair";
         }
       } else {
+        //7/9
+        if (_via_current_update_attribute_name == ""){
+          //7/10
+          var yes = false;
+        }
+        else{
         var yes = is_inside_this_region(_via_current_x,
                                         _via_current_y,
                                         _via_user_sel_region_id);
+      }
         if (yes) {
           _via_reg_canvas.style.cursor = "move";
+
         } else {
           _via_reg_canvas.style.cursor = "default";
         }
@@ -2034,6 +2105,13 @@ _via_reg_canvas.addEventListener('mousemove', function(e) {
 
     switch (_via_current_shape ) {
     case VIA_REGION_SHAPE.RECT:
+    //Samin color palette fix?
+      if (_via_current_update_attribute_name == ""){
+        //7/10
+        break;
+      }
+      VIA_THEME_BOUNDARY_FILL_COLOR = _via_class_names.get(_via_current_update_attribute_name)[1];
+      VIA_THEME_BOUNDARY_LINE_COLOR   = _via_class_names.get(_via_current_update_attribute_name)[1];
       _via_draw_rect_region(region_x0, region_y0, dx, dy, false);
       break;
 
@@ -2066,6 +2144,8 @@ _via_reg_canvas.addEventListener('mousemove', function(e) {
 
     var region_id = _via_region_edge[0];
     var attr = _via_canvas_regions[region_id].shape_attributes;
+    //7/11 lets get the color right when transitioning
+    VIA_THEME_BOUNDARY_LINE_COLOR = _via_canvas_regions[region_id].region_attributes.color;
     switch (attr['name']) {
     case VIA_REGION_SHAPE.RECT:
       // original rectangle
@@ -2151,6 +2231,7 @@ _via_reg_canvas.addEventListener('mousemove', function(e) {
 
   if ( _via_is_user_moving_region ) {
     // draw region as the user drags the mouse coursor
+
     if (_via_canvas_regions.length) {
       _via_redraw_reg_canvas(); // clear old intermediate rectangle
     } else {
@@ -2160,7 +2241,12 @@ _via_reg_canvas.addEventListener('mousemove', function(e) {
 
     var move_x = (_via_current_x - _via_region_click_x);
     var move_y = (_via_current_y - _via_region_click_y);
+    //7/9
+    if (_via_canvas_regions[_via_user_sel_region_id] == undefined){
+      return;
+    }
     var attr = _via_canvas_regions[_via_user_sel_region_id].shape_attributes;
+    VIA_THEME_BOUNDARY_LINE_COLOR = _via_canvas_regions[_via_user_sel_region_id].region_attributes.color;
 
     switch (attr['name']) {
     case VIA_REGION_SHAPE.RECT:
@@ -2238,10 +2324,12 @@ function _via_redraw_reg_canvas() {
     if ( _via_canvas_regions.length > 0 ) {
       _via_reg_ctx.clearRect(0, 0, _via_reg_canvas.width, _via_reg_canvas.height);
       if (_via_is_region_boundary_visible) {
+        //VIA_THEME_BOUNDARY_FILL_COLOR = _via_class_names.get(_via_current_update_attribute_name)[1];
         draw_all_regions();
       }
 
       if (_via_is_region_id_visible) {
+        //SAMIN names are on this function 6/20
         draw_all_region_id();
       }
     }
@@ -2256,9 +2344,22 @@ function draw_all_regions() {
   for (var i=0; i < _via_canvas_regions.length; ++i) {
     var attr = _via_canvas_regions[i].shape_attributes;
     var is_selected = _via_canvas_regions[i].is_user_selected;
-
+    var region_name = _via_canvas_regions[i].region_attributes["name"];
+    //6/21
+    //var colorattr = _via_class_names.get(region_name)[1];
+    //SAMIN work on color palette here
     switch( attr['name'] ) {
     case VIA_REGION_SHAPE.RECT:
+    //6/21
+    //maybe change the global variable here?
+    //7/16
+    //console.log(_via_class_names);
+    //console.log(_via_class_names.get(region_name)[1]);
+    if (_via_class_names.get(region_name) == undefined){
+      break;
+    }
+    VIA_THEME_BOUNDARY_FILL_COLOR = _via_class_names.get(region_name)[1];
+    VIA_THEME_BOUNDARY_LINE_COLOR = _via_class_names.get(region_name)[1];
       _via_draw_rect_region(attr['x'],
                             attr['y'],
                             attr['width'],
@@ -2302,17 +2403,19 @@ function _via_draw_control_point(cx, cy) {
   _via_reg_ctx.arc(cx, cy, VIA_REGION_POINT_RADIUS, 0, 2*Math.PI, false);
   _via_reg_ctx.closePath();
 
-  _via_reg_ctx.fillStyle = VIA_THEME_CONTROL_POINT_COLOR;
-  _via_reg_ctx.globalAlpha = 1.0;
+  _via_reg_ctx.fillStyle = "white";
+  //_via_reg_ctx.globalAlpha = 1.0;
   _via_reg_ctx.fill();
 }
 
 function _via_draw_rect_region(x, y, w, h, is_selected) {
+  //7/9 opacity is determined by globalalpha
   if (is_selected) {
     _via_draw_rect(x, y, w, h);
-
-    _via_reg_ctx.strokeStyle = VIA_THEME_SEL_REGION_FILL_BOUNDARY_COLOR;
-    _via_reg_ctx.lineWidth   = VIA_THEME_REGION_BOUNDARY_WIDTH/2;
+    //SAMIN rect colors may be manipulated here
+    //7/10
+    _via_reg_ctx.strokeStyle = VIA_THEME_BOUNDARY_LINE_COLOR;
+    _via_reg_ctx.lineWidth   = VIA_THEME_REGION_BOUNDARY_WIDTH;
     _via_reg_ctx.stroke();
 
     _via_reg_ctx.fillStyle   = VIA_THEME_SEL_REGION_FILL_COLOR;
@@ -2327,7 +2430,7 @@ function _via_draw_rect_region(x, y, w, h, is_selected) {
   } else {
     // draw a fill line
     _via_reg_ctx.strokeStyle = VIA_THEME_BOUNDARY_FILL_COLOR;
-    _via_reg_ctx.lineWidth   = VIA_THEME_REGION_BOUNDARY_WIDTH/2;
+    _via_reg_ctx.lineWidth   = VIA_THEME_REGION_BOUNDARY_WIDTH/4;
     _via_draw_rect(x, y, w, h);
     _via_reg_ctx.stroke();
 
@@ -2335,17 +2438,17 @@ function _via_draw_rect_region(x, y, w, h, is_selected) {
          h > VIA_THEME_REGION_BOUNDARY_WIDTH ) {
       // draw a boundary line on both sides of the fill line
       _via_reg_ctx.strokeStyle = VIA_THEME_BOUNDARY_LINE_COLOR;
-      _via_reg_ctx.lineWidth   = VIA_THEME_REGION_BOUNDARY_WIDTH/4;
-      _via_draw_rect(x - VIA_THEME_REGION_BOUNDARY_WIDTH/2,
-                     y - VIA_THEME_REGION_BOUNDARY_WIDTH/2,
-                     w + VIA_THEME_REGION_BOUNDARY_WIDTH,
-                     h + VIA_THEME_REGION_BOUNDARY_WIDTH);
+      _via_reg_ctx.lineWidth   = VIA_THEME_REGION_BOUNDARY_WIDTH/16;
+      _via_draw_rect(x,
+                     y,
+                     w,
+                     h);
       _via_reg_ctx.stroke();
 
-      _via_draw_rect(x + VIA_THEME_REGION_BOUNDARY_WIDTH/2,
-                     y + VIA_THEME_REGION_BOUNDARY_WIDTH/2,
-                     w - VIA_THEME_REGION_BOUNDARY_WIDTH,
-                     h - VIA_THEME_REGION_BOUNDARY_WIDTH);
+      _via_draw_rect(x,
+                     y,
+                     w,
+                     h);
       _via_reg_ctx.stroke();
     }
   }
@@ -2557,6 +2660,7 @@ function _via_draw_point(cx, cy, r) {
   _via_reg_ctx.closePath();
 }
 
+//7/18 lets make this work for a single region
 function draw_all_region_id() {
   _via_reg_ctx.shadowColor = "transparent";
   for ( var i = 0; i < _via_img_metadata[_via_image_id].regions.length; ++i ) {
@@ -2575,14 +2679,14 @@ function draw_all_region_id() {
     var char_height = 1.8 * char_width;
 
     var r = _via_img_metadata[_via_image_id].regions[i].region_attributes;
-    if ( Object.keys(r).length === 1 && w > (2*char_width) ) {
+    if ( true ) {
       // show the attribute value
-      for (var key in r) {
-        annotation_str = r[key];
-      }
+      //for (var key in r) {
+        annotation_str = r["name"];
+      //}
       var strw = _via_reg_ctx.measureText(annotation_str).width;
 
-      if ( strw > w ) {
+      if ( false ) {
         // if text overflows, crop it
         var str_max     = Math.floor((w * annotation_str.length) / strw);
         annotation_str  = annotation_str.substr(0, str_max-1) + '.';
@@ -2717,6 +2821,10 @@ function is_inside_region(px, py, descending_order) {
 
 function is_inside_this_region(px, py, region_id) {
   if (_via_current_shape == VIA_REGION_SHAPE.NONE){
+    return;
+  }
+  //7/9
+  if (_via_canvas_regions[region_id] == undefined){
     return;
   }
   var attr   = _via_canvas_regions[region_id].shape_attributes;
@@ -3047,7 +3155,7 @@ function rect_update_corner(corner_id, d, x, y, preserve_aspect_ratio) {
 
 function _via_update_ui_components() {
   if ( !_via_is_window_resized && _via_current_image_loaded ) {
-    show_message('Resizing window ...');
+    //show_message('Resizing window ...');
     set_all_text_panel_display('none');
     show_all_canvas();
 
@@ -3237,8 +3345,10 @@ window.addEventListener('wheel', function(e) {
   }
 });
 
+//this count should probably only reflect the class objects in the current canvas
+//7/16
 function update_count(className){
-  document.getElementById(className + "_num").innerHTML = _via_class_names.get(className);
+  document.getElementById(className + "_num").innerHTML = " (" + _via_class_names.get(className)[0] + ")";
 }
 
 //SAMIN our goal here should be to try to update our map when he delete items
@@ -3262,7 +3372,8 @@ function del_sel_regions() {
        // console.log(_via_img_metdata[_via_image_id].regions);
        selected_class = _via_canvas_regions[i].region_attributes["name"];
         _via_class_names.set(selected_class, 
-          (_via_class_names.get(selected_class)-1));
+          [(_via_class_names.get(selected_class)[0]-1),
+          _via_class_names.get(selected_class)[1]]);
 
         update_count(selected_class);
 
@@ -3734,7 +3845,7 @@ function init_spreadsheet_input(type, col_headers, data, row_names) {
     }
 
 
-    console.log(data);
+ 
     for ( var key in col_headers ) {
       var input_id = type[0] + '#' + key + '#' + row_i;
 
@@ -3776,123 +3887,8 @@ function init_spreadsheet_input(type, col_headers, data, row_names) {
       }
     }
   }
-
-  /*
-  SAMIN
-  attributes_panel.replaceChild(attrtable, document.getElementById('attributes_panel_table'));
-  attributes_panel.focus();*/
-
-  // move vertical scrollbar automatically to show the selected region (if any)
-  /*
-  SAMIN
-  if ( sel_rows.length === 1 ) {
-    var panelHeight = attributes_panel.offsetHeight;
-    var sel_row_bottom = sel_rows[0].offsetTop + sel_rows[0].clientHeight;
-    if (sel_row_bottom > panelHeight) {
-      attributes_panel.scrollTop = sel_rows[0].offsetTop;
-    } else {
-      attributes_panel.scrollTop = 0;
-    }
-  } else {
-    attributes_panel.scrollTop = 0;
-  }*/
 }
 
-/*
-SAMIN
-function update_attributes_panel(type) {
-  if (_via_current_image_loaded &&
-      _via_is_attributes_panel_visible) {
-    if (_via_is_reg_attr_panel_visible) {
-      update_region_attributes_input_panel();
-    }
-
-    if ( _via_is_file_attr_panel_visible ) {
-      update_file_attributes_input_panel();
-    }
-    update_vertical_space();
-  }
-}
-
-function update_region_attributes_input_panel() {
-  init_spreadsheet_input('region_attributes',
-                         _via_region_attributes,
-                         _via_img_metadata[_via_image_id].regions);
-
-}
-
-function update_file_attributes_input_panel() {
-  init_spreadsheet_input('file_attributes',
-                         _via_file_attributes,
-                         [_via_img_metadata[_via_image_id].regions],
-                         [_via_current_image_filename]);
-}
-
-function toggle_attributes_input_panel() {
-  if( _via_is_reg_attr_panel_visible ) {
-    toggle_reg_attr_panel();
-  }
-  if( _via_is_file_attr_panel_visible ) {
-    toggle_file_attr_panel();
-  }
-}
-*/
-
-//SAMIN edited this function to make it just stick and not toggle, removed a conditional block
-/*function toggle_reg_attr_panel() {
-  if ( _via_current_image_loaded ) {
-    var panel = document.getElementById('reg_attr_panel_button');
-    panel.classList.toggle('active');
-    if ( _via_is_attributes_panel_visible ) {
-      update_region_attributes_input_panel();
-      _via_is_reg_attr_panel_visible  = true;
-      _via_is_file_attr_panel_visible = false;
-      // de-activate the file-attr accordion panel
-      var panel = document.getElementById('file_attr_panel_button');
-      panel.classList.toggle('active');
-      attributes_panel.focus();
-    } else {
-      _via_is_attributes_panel_visible = true;
-      update_region_attributes_input_panel();
-      _via_is_reg_attr_panel_visible = true;
-      attributes_panel.style.display = 'block';
-      attributes_panel.focus();
-    }
-    update_vertical_space();
-  } else {
-    show_message('Please load some images first');
-  }
-}
-
-function toggle_file_attr_panel() {
-  if ( _via_current_image_loaded ) {
-    var panel = document.getElementById('file_attr_panel_button');
-    panel.classList.toggle('active');
-    if ( _via_is_attributes_panel_visible ) {
-      if( _via_is_file_attr_panel_visible ) {
-        attributes_panel.style.display = 'none';
-        _via_is_attributes_panel_visible = false;
-        _via_is_file_attr_panel_visible = false;
-      } else {
-        update_file_attributes_input_panel();
-        _via_is_file_attr_panel_visible = true;
-        _via_is_reg_attr_panel_visible = false;
-
-        // de-activate the reg-attr accordion panel
-        var panel = document.getElementById('reg_attr_panel_button');
-        panel.classList.toggle('active');
-      }
-    } else {
-      _via_is_attributes_panel_visible = true;
-      update_file_attributes_input_panel();
-      _via_is_file_attr_panel_visible = true;
-      attributes_panel.style.display = 'block';
-    }
-    update_vertical_space();
-  } else {
-    show_message('Please load some images first');
-  }
-}*/
 
 // this vertical spacer is needed to allow scrollbar to show
 // items like Keyboard Shortcut hidden under the attributes panel
@@ -3950,39 +3946,116 @@ function add_new_attribute(type, attribute_name) {
 
 
 //SAMIN added function to help with adding classes to the sidebar
-function addClass(className){
+//7/18 make the color a rotating array
+function addClass(className, classColor = _via_color_array[_via_class_names.size % 6]){
+  
   if (_via_class_names.has(className)){
     return;
   }
-  else{
-    _via_class_names.set(className,0);
+  if (className == ""){
+    return;
   }
+  else{
+      _via_class_names.set(className,[0, classColor]);
+  
+
+  }
+  document.getElementById("classes_label").innerHTML = "Classes " + " (" + _via_class_names.size + ")";
   var button = document.createElement("input");
   var count = document.createElement("p");
-  var trash = document.createElement("input");
-  var edit = document.createElement("input");
+  var trash = document.createElementNS ('http://www.w3.org/2000/svg', "svg");
+  var edit = document.createElementNS ('http://www.w3.org/2000/svg', "svg");
   var name_input = document.createElement("input");
   var name_submit = document.createElement("input");
+  var dummy = document.createElement("p");
+
+  //SAMIN colorswitch will replace colorswatch so it has functionality on each 
+  var colorswitch = document.createElement("div");
+  var colorpicker = document.createElement("div");
+  var colorwrapper = document.createElement("div");
+  colorwrapper.className = "color-wrapper";
+
+
 
   //SAMIN come back and make these strings constants initialized at the start
   //we want to make the id's of the buttons for the classes unique
-  button.type = "button";
+
+  /*SAMIN dummy to make sure every class starts on a separate line*/
+  dummy.className = "dummy";
+  colorswitch.className = "class-color-holder";
+  colorswitch.id = className + "_colorswitch";
+  colorpicker.id = className + "_colorpicker";
+  colorpicker.className = "color-picker";
+
+  colorswitch.style.background = _via_class_names.get(className)[1];
+
+  var colorList = [ '#000000', '#993300', '#333300', '#003300', '#003366', '#000066', '#333399', '#333333', 
+'#660000', '#FF6633', '#666633', '#336633', '#336666', '#0066FF', '#666699', '#666666', '#CC3333', '#FF9933', '#99CC33', 
+'#669966', '#66CCCC', '#3366FF', '#663366', '#999999', '#CC66FF', '#FFCC33', '#FFFF66', '#99FF66', '#99CCCC', '#66CCFF', 
+'#993366', '#CCCCCC', '#FF99CC', '#FFCC99', '#FFFF99', '#CCffCC', '#CCFFff', '#99CCFF', '#CC99FF', '#FFFFFF' ];
+
+  var div_array = [];
+
+  
+
+
+    for (var i = 0; i < colorList.length; i++ ) {
+      var li = document.createElement("li");
+      div_array.push(li);
+      li.className = "color-item";
+      li.style.backgroundColor = colorList[i];
+      colorpicker.appendChild(li);
+
+      //we have to make another array of objects now
+    }
+
+    for (var j = 0; j < div_array.length; j++){
+        div_array[j].addEventListener("click",function(){
+        var click_count = _via_class_names.get(className)[0];
+        var click_color = _via_class_names.get(className)[1];
+        _via_class_names.set(className, [click_count, this.style.backgroundColor]);
+        //7/5 SAMIN lets change up the metadata now
+        //iterate through image metadata of current image and see where the region has an id that matches w the selected class
+        //for ()
+        colorswitch.style.fill = this.style.backgroundColor;
+        colorswitch.style.background = this.style.backgroundColor;
+        colorpicker.style.display = "none";
+        draw_all_regions();
+
+      });
+    }
+
+
+    colorswitch.addEventListener("click", function(){
+    if (colorpicker.style.display == "inline-block"){
+      colorpicker.style.display = "none";
+    }
+    else{
+      colorpicker.style.display = "inline-block";
+    }
+  });
+    colorpicker.style.display = "none";
+
+  button.type = "textbox";
+  button.readOnly = true;
   button.value = className;
   button.id = className + "_via_btn";
-  button.className = "class_button";
+  button.className = "bx--link _via_btn";
 
   //have it so class names can't include underscores so this can be unique
   count.id = className + "_num";
   count.value=0;
-  count.innerHTML = 0;
+  count.innerHTML = "(0)";
+  count.className = "bx--link count_button";
 
-  trash.type = "button";
+  trash.setAttribute('width','12');
+  trash.setAttribute('height','16');
   trash.id = className + "_del";
-  trash.value = "delete";
 
-  edit.type = "button";
+  edit.setAttribute('width','40');
+  edit.setAttribute('height','16');
   edit.id = className + "_edit";
-  edit.value = "change name";
+
 
   name_input.type = "text";
   name_input.id = className + "_text";
@@ -3993,92 +4066,275 @@ function addClass(className){
   name_submit.id = className + "_submit";
   name_submit.className = "name_changer";
 
+  //document.getElementById(className).addEventListener("click", myScript);
+
+  var leftDiv = document.createElement("div");
+
+
+  var rightDiv = document.createElement("div");
+  leftDiv.className = "left_labels";
+  rightDiv.className = "right_labels";
+  var mainDiv = document.createElement("div");
+  mainDiv.className = "mainDivs";
+  document.getElementById("classes_info").appendChild(mainDiv);
+  mainDiv.appendChild(leftDiv);
+  mainDiv.appendChild(rightDiv);
+
+
+  colorwrapper.appendChild(colorswitch);
+  //We have to get this moved over to next to the colorswitch
+  colorwrapper.appendChild(colorpicker);
+  leftDiv.appendChild(colorwrapper);
+  leftDiv.appendChild(button);
+  rightDiv.appendChild(count);
+
+  rightDiv.appendChild(edit);
+  var path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+
+  path1.setAttribute('d','M2.032 10.924l7.99-7.99 2.97 2.97-7.99 7.99zm9.014-8.91l1.98-1.98 2.97 2.97-1.98 1.98zM0 16l3-1-2-2z');
+  path1.setAttribute('fill','#3D6FB1');
+  edit.appendChild(path1);
 
   
-  //document.getElementById(className).addEventListener("click", myScript);
-  document.getElementById("classes").appendChild(button);
-  document.getElementById("classes").appendChild(trash);
-  document.getElementById("classes").appendChild(edit);
-  document.getElementById("classes").appendChild(name_input);
-  document.getElementById("classes").appendChild(name_submit);
-  
-  document.getElementById("classes").appendChild(count);
-  
-  button.addEventListener("click", function(){
-    attr_input_focus(className);
-    _via_current_update_attribute_name = className;
-    _via_current_shape = VIA_REGION_SHAPE.RECT;
-    var active_btn = document.querySelector('.class_button.active');
-    
+
+  rightDiv.appendChild(trash);
+  path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  var path2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+
+  //<svg width="16" height="16" viewBox="0 0 16 16"><path d="M2.032 10.924l7.99-7.99 2.97 2.97-7.99 7.99zm9.014-8.91l1.98-1.98 2.97 2.97-1.98 1.98zM0 16l3-1-2-2z"></path></svg>
+
+  path1.setAttribute('d','M11 4v11c0 .6-.4 1-1 1H2c-.6 0-1-.4-1-1V4H0V3h12v1h-1zM2 4v11h8V4H2z');
+  path1.setAttribute('fill','#3D6FB1');
+  trash.appendChild(path1);
+
+  path2.setAttribute('d','M4 6h1v7H4zm3 0h1v7H7zM3 1V0h6v1z');
+  path2.setAttribute('fill','#3D6FB1');
+  trash.appendChild(path2);
+
+
+  rightDiv.appendChild(name_input);
+  rightDiv.appendChild(name_submit);
+  rightDiv.appendChild(dummy);
+  mainDiv.style.zIndex = 1;
+  colorpicker.style.zIndex = 1000;
+
+
+  //change color of draw label 7/12
+  document.getElementById("draw_path_1").style.fill = "#3D70B2";
+          document.getElementById("draw_path_2").style.stroke = "#3D70B2";
+
+
+  attr_input_focus(className);
+    if (_via_class_names.has(className)){
+      _via_current_update_attribute_name = className;
+      _via_current_shape = VIA_REGION_SHAPE.RECT;
+    }
+    else{
+      _via_current_update_attribute_name = '';
+      //_via_current_shape = VIA_REGION_SHAPE.NONE;
+    }
+    var active_div = document.querySelector('.mainDivs.active');
+    var active_btn = document.querySelector('._via_btn.active');
+    //VIA_THEME_BOUNDARY_FILL_COLOR = _via_class_names.get(className)[1];
     //if any active btn
-    if(active_btn){
+    if(active_div){
       //remove active class from it 
+
+      active_div.classList.remove('active');
       active_btn.classList.remove('active');
+      active_div.style.backgroundColor = "transparent";
+      active_btn.style.backgroundColor = "transparent";
+
     }
 
+    mainDiv.classList.add('active');
     button.classList.add('active');
+    mainDiv.style.backgroundColor = "#dbe4f0";
+    button.style.backgroundColor = "#dbe4f0";
+    turnOnShortcuts();
+
+
+
+  mainDiv.addEventListener("mouseover", function(){
+    if (mainDiv.classList.contains('active')){
+      return;
+    
+      
+    }
+    mainDiv.style.backgroundColor = "#ECF1F7";
+    button.style.backgroundColor = "#ECF1F7";
+
+  });
+
+  mainDiv.addEventListener("mouseout", function(){
+    if (mainDiv.classList.contains('active')){
+      return;
+    
+      
+    }
+    mainDiv.style.backgroundColor = "transparent";
+    button.style.backgroundColor = "transparent";
+  });
+  
+  mainDiv.addEventListener("click", function(){
+    //7/12 turn on draw label
+    attr_input_focus(className);
+    if (_via_class_names.has(className)){
+      _via_current_update_attribute_name = className;
+      _via_current_shape = VIA_REGION_SHAPE.RECT;
+    }
+    else{
+      _via_current_update_attribute_name = '';
+      //_via_current_shape = VIA_REGION_SHAPE.NONE;
+    }
+    var active_div = document.querySelector('.mainDivs.active');
+    var active_btn = document.querySelector('._via_btn.active');
+    //VIA_THEME_BOUNDARY_FILL_COLOR = _via_class_names.get(className)[1];
+    //if any active btn
+    if(active_div){
+      //remove active class from it 
+
+      active_div.classList.remove('active');
+      active_btn.classList.remove('active');
+      active_div.style.backgroundColor = "transparent";
+      active_btn.style.backgroundColor = "transparent";
+
+
+    }
+
+    mainDiv.classList.add('active');
+    button.classList.add('active');
+    mainDiv.style.backgroundColor = "#dbe4f0";
+    button.style.backgroundColor = "#dbe4f0";
+    document.getElementById("draw_path_1").style.fill = "#3D70B2";
+    document.getElementById("draw_path_2").style.stroke = "#3D70B2";
     turnOnShortcuts();
   });
 
   //removal of class
     trash.addEventListener("click", function(){
+      //6/26 if the one being trashed is the current class
+      var isActive = false;
+      if (mainDiv.classList.contains('active')){
+        mainDiv.classList.remove('active');
+        isActive = true;
+        _via_current_update_attribute_name = '';
+        //7/12 turn off draw label 
+          document.getElementById("draw_path_1").style.fill = "#9EB7D8";
+          document.getElementById("draw_path_2").style.stroke = "#9EB7D8";
+
+      }
+      //7/5 SAMIN
+      //lets try a different function altogether for this one
+      //go through the metadata and delete all of that as well as w the classes
       select_regions(className);
       del_sel_regions();
+      //we have to make sure we account for the metadata too and the images in other pictures
+      for (var x in _via_img_metadata){
+        for (var i = 0; i < _via_img_metadata[x].regions.length; i++){
+          if(_via_img_metadata[x].regions[i].region_attributes["name"] == className){
+            _via_img_metadata[x].regions.splice(i,1);
+            i--;
+          }
+
+        }
+      }
+
       trash.remove();
       button.remove();
       count.remove();
       edit.remove();
       name_input.remove();
       name_submit.remove();
+      leftDiv.remove();
+      rightDiv.remove();
+      mainDiv.remove();
+
       _via_class_names.delete(className);
+      document.getElementById("classes_label").innerHTML = "Classes " + " (" + _via_class_names.size + ")";
+
+      if (isActive){
+        _via_current_update_attribute_name = '';
+        document.getElementById("draw_path_1").style.fill = "#9EB7D8";
+          document.getElementById("draw_path_2").style.stroke = "#9EB7D8";
+      }
 
     });
 
     edit.addEventListener("click", function(){
-      if (edit.value == "hide"){
-        name_input.style.display = "none";
-        name_submit.style.display = "none";
-        edit.value = "change name";
-      }
-      else{
-        name_input.style.display = "initial";
-        name_submit.style.display = "initial";
-        edit.value = "hide";
-      }
+
+      button.readOnly = false;
+      button.focus();
+      _via_changing_class = true;
+
+      
 
     });
 
+    button.addEventListener("focus", function(){
+      _via_is_user_adding_attribute_name = true;
+      _via_is_user_updating_attribute_value = true;
+      _via_is_user_updating_attribute_name = true;
+    });
+
+    button.addEventListener("blur", function(){
+      turnOnShortcuts();
+    });
+
     //SAMIN add event listener on the submit button for editing the name
-    name_submit.addEventListener("click", function(){
-      //we have to change a lot here. let's start w the map
-      if (name_input.value){
-        console.log("name already exists");
+    button.addEventListener("change", function(){
+
+
+      if (_via_class_names.has(button.value)){
+        show_message("name already exists");
+        button.value = className;
+        //find out we disabled the character keys before
         return;
       }
-      var classCount = _via_class_names.get(className);
+      var classCount = _via_class_names.get(className)[0];
       var oldClassName = className;
-      _via_class_names.set(name_input.value, classCount);
+      _via_class_names.set(button.value, [classCount, _via_class_names.get(className)[1]]);
       _via_class_names.delete(className);
 
-      className = name_input.value;
+      className = button.value;
 
       //next lets change up the metadata and the canvas region data and update the canvas
 
       //canvas region
       for (var i = 0; i < _via_canvas_regions.length; i++){
+        console.log("help2");
         if (_via_canvas_regions[i].region_attributes["name"] == oldClassName){
           _via_canvas_regions[i].region_attributes["name"] = className;
         }
       }
 
       //metadata
-      for (var i = 0; i < _via_img_metadata[_via_image_id].regions.length; i++){
-        if (_via_img_metadata[_via_image_id].regions[i].region_attributes["name"] == oldClassName){
-          _via_img_metadata[_via_image_id].regions[i].region_attributes["name"] = className;
+      //7/16
+      //change this for all images?
+
+      for (var i = 0; i < _via_img_metadata["cars.png62201"].regions.length; i++){
+        console.log("help");
+        if (_via_img_metadata["cars.png62201"].regions[i].region_attributes["name"] == oldClassName){
+          _via_img_metadata["cars.png62201"].regions[i].region_attributes["name"] = className;
+        }
+      }
+
+      for (var i = 0; i < _via_img_metadata["lot.jpeg71862"].regions.length; i++){
+        console.log("help");
+        if (_via_img_metadata["lot.jpeg71862"].regions[i].region_attributes["name"] == oldClassName){
+          _via_img_metadata["lot.jpeg71862"].regions[i].region_attributes["name"] = className;
+        }
+      }
+
+      for (var i = 0; i < _via_img_metadata["outside.jpeg21513"].regions.length; i++){
+        console.log("help");
+        if (_via_img_metadata["outside.jpeg21513"].regions[i].region_attributes["name"] == oldClassName){
+          _via_img_metadata["outside.jpeg21513"].regions[i].region_attributes["name"] = className;
         }
       }
 
       //we have to update labels as well as the canvas
+      //6/27 SAMIN remember this
       button.value = className;
       button.id = className + "_via_btn";
       count.id = className + "_num";
@@ -4086,10 +4342,10 @@ function addClass(className){
       edit.id = className + "_edit";
       name_input.id = className + "_text";
       name_submit.id = className + "_submit";
+      button.readOnly = true;
 
       
       //lets make this the new active class and the selected region
-      _via_current_update_attribute_name = className;
 
       var active_btn = document.querySelector('.class_button.active');
     
@@ -4101,6 +4357,9 @@ function addClass(className){
 
     button.classList.add('active');
     attr_input_focus(className);
+    _via_changing_class = false;
+
+
     turnOnShortcuts();
 
     });
@@ -4108,8 +4367,35 @@ function addClass(className){
 }
 
 function turnOnShortcuts(){
+  if (_via_changing_class){
+    return;
+  }
   _via_is_user_adding_attribute_name = false;
   _via_is_user_updating_attribute_value = false;
+  _via_is_user_updating_attribute_name = false;
+}
+
+function repopulate(){
+  var imported_name;
+  var imported_color;
+  //iterate through metadata
+  for (var x in _via_img_metadata){
+  for (var i = 0; i < _via_img_metadata[x].regions.length; i++){
+    imported_name = _via_img_metadata[x].regions[i].region_attributes["name"];
+    imported_color = _via_img_metadata[x].regions[i].region_attributes["color"];
+    //add metadata info to map
+    if (_via_class_names.has(imported_name)){
+      _via_class_names.set(imported_name, [_via_class_names.get(imported_name)[0]+1, _via_class_names.get(imported_name)[1]]);
+    }
+    else{
+      //7/5 maybe we can have another argument for color here. edit the addclass function
+      addClass(imported_name, imported_color);
+      _via_class_names.set(imported_name, [1, imported_color]);
+    }
+
+    update_count(imported_name);
+  }
+}
 }
 
 //SAMIN changed body onload to addEventListener
@@ -4118,11 +4404,3 @@ window.addEventListener('load',
 
 window.addEventListener('resize', 
   _via_update_ui_components, false);
-
-
-//
-// hooks for sub-modules
-// implemented by sub-modules
-//
-//function _via_hook_next_image() {}
-//function _via_hook_prev_image() {}
