@@ -248,18 +248,29 @@ function _via_init() {
   });
   document.getElementById("toolbar_zoom_out").addEventListener("click", function(){
     zoom_out();
+    if (document.getElementById("toolbar_zoom_out").style.backgroundColor != "#e5e5e5"){
+      document.getElementById("toolbar_zoom_out").style.backgroundColor = "#e5e5e5";
+      document.getElementById("toolbar_zoom_in").style.backgroundColor = "transparent";
+    }
   });
   document.getElementById("toolbar_zoom_in").addEventListener("click", function(){
     zoom_in();
+    if (document.getElementById("toolbar_zoom_in").style.backgroundColor != "#e5e5e5"){
+      document.getElementById("toolbar_zoom_in").style.backgroundColor = "#e5e5e5";
+      document.getElementById("toolbar_zoom_out").style.backgroundColor = "transparent";
+    }
   });
 
   document.getElementById("toolbar_name_all_region").addEventListener("click", function(){
     toggle_region_id_visibility();
     if (_via_names_shown){
       _via_names_shown = false;
+      document.getElementById("toolbar_name_all_region").style.backgroundColor = "transparent";
+
     }
     else{
       _via_names_shown = true;
+      document.getElementById("toolbar_name_all_region").style.backgroundColor = "#e5e5e5";
     }  
   });
 
@@ -269,15 +280,20 @@ function _via_init() {
   document.getElementById("toolbar_deletion").addEventListener("click", function(){
     del_sel_regions();
   });
-  document.getElementById("add_class").addEventListener("focus", function(){
-    attr_input_focus(document.getElementById("add_class").value);
-  });
+
   document.getElementById("add_class").addEventListener("blur", function(){
     turnOnShortcuts();
   });
   document.getElementById("submit_add").addEventListener("click", function(){
     addClass(document.getElementById('add_class').value);
   });
+
+  document.getElementById("add_class").addEventListener("keyup", function(event) {
+    event.preventDefault();
+    if (event.keyCode === 13) {
+        addClass(document.getElementById('add_class').value);
+    }
+});
 
   document.getElementById("save_button").addEventListener("click", function(){
     //7/5 Samin edit the metadata to reflect accurate color changes
@@ -2340,6 +2356,7 @@ function _via_clear_reg_canvas() {
   _via_reg_ctx.clearRect(0, 0, _via_reg_canvas.width, _via_reg_canvas.height);
 }
 
+//7/20 find out how to name only 1 
 function draw_all_regions() {
   for (var i=0; i < _via_canvas_regions.length; ++i) {
     var attr = _via_canvas_regions[i].shape_attributes;
@@ -2418,6 +2435,8 @@ function _via_draw_rect_region(x, y, w, h, is_selected) {
     _via_reg_ctx.lineWidth   = VIA_THEME_REGION_BOUNDARY_WIDTH;
     _via_reg_ctx.stroke();
 
+    //7/20 perhaps we can work in the name here
+
     _via_reg_ctx.fillStyle   = VIA_THEME_SEL_REGION_FILL_COLOR;
     _via_reg_ctx.globalAlpha = VIA_THEME_SEL_REGION_OPACITY;
     _via_reg_ctx.fill();
@@ -2427,6 +2446,7 @@ function _via_draw_rect_region(x, y, w, h, is_selected) {
     _via_draw_control_point(x+w, y+h);
     _via_draw_control_point(x  , y+h);
     _via_draw_control_point(x+w,   y);
+
   } else {
     // draw a fill line
     _via_reg_ctx.strokeStyle = VIA_THEME_BOUNDARY_FILL_COLOR;
@@ -2660,7 +2680,7 @@ function _via_draw_point(cx, cy, r) {
   _via_reg_ctx.closePath();
 }
 
-//7/18 lets make this work for a single region
+//7/20 lets make this work for a single region
 function draw_all_region_id() {
   _via_reg_ctx.shadowColor = "transparent";
   for ( var i = 0; i < _via_img_metadata[_via_image_id].regions.length; ++i ) {
@@ -4121,7 +4141,8 @@ function addClass(className, classColor = _via_color_array[_via_class_names.size
 
   //change color of draw label 7/12
   document.getElementById("draw_path_1").style.fill = "#3D70B2";
-          document.getElementById("draw_path_2").style.stroke = "#3D70B2";
+  document.getElementById("draw_path_2").style.stroke = "#3D70B2";
+  document.getElementById("toolbar_draw").style.backgroundColor = "#e5e5e5";
 
 
   attr_input_focus(className);
