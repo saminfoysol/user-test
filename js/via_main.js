@@ -274,9 +274,10 @@ function _via_init() {
     }  
   });
 
-  /*document.getElementById("toolbar_download_csv").addEventListener("click", function(){
+  document.getElementById("toolbar_download_csv").addEventListener("click", function(){
     download_all_region_data('csv');
-  });*/
+  });
+
   document.getElementById("toolbar_deletion").addEventListener("click", function(){
     del_sel_regions();
   });
@@ -2356,7 +2357,7 @@ function _via_clear_reg_canvas() {
   _via_reg_ctx.clearRect(0, 0, _via_reg_canvas.width, _via_reg_canvas.height);
 }
 
-//7/20 find out how to name only 1 
+//7/20 find out how to name only
 function draw_all_regions() {
   for (var i=0; i < _via_canvas_regions.length; ++i) {
     var attr = _via_canvas_regions[i].shape_attributes;
@@ -2382,6 +2383,65 @@ function draw_all_regions() {
                             attr['width'],
                             attr['height'],
                             is_selected);
+
+      //7/20
+      if (is_selected){
+    var canvas_reg = _via_canvas_regions[i];
+
+    var bbox = get_region_bounding_box(canvas_reg);
+    var x = bbox[0];
+    var y = bbox[1];
+    var w = Math.abs(bbox[2] - bbox[0]);
+    _via_reg_ctx.font = VIA_THEME_ATTRIBUTE_VALUE_FONT;
+
+    var annotation_str  = (i+1).toString();
+    var bgnd_rect_width = _via_reg_ctx.measureText(annotation_str).width * 2;
+
+    var char_width  = _via_reg_ctx.measureText('M').width;
+    var char_height = 1.8 * char_width;
+
+    var r = _via_img_metadata[_via_image_id].regions[i].region_attributes;
+    if ( true ) {
+      // show the attribute value
+      //for (var key in r) {
+        annotation_str = r["name"];
+      //}
+      var strw = _via_reg_ctx.measureText(annotation_str).width;
+
+      if ( false ) {
+        // if text overflows, crop it
+        var str_max     = Math.floor((w * annotation_str.length) / strw);
+        annotation_str  = annotation_str.substr(0, str_max-1) + '.';
+        bgnd_rect_width = w;
+      } else {
+        bgnd_rect_width = strw + char_width;
+      }
+    }
+
+    if (canvas_reg.shape_attributes['name'] === VIA_REGION_SHAPE.POLYGON) {
+      // put label near the first vertex
+      x = canvas_reg.shape_attributes['all_points_x'][0];
+      y = canvas_reg.shape_attributes['all_points_y'][0];
+    } else {
+      // center the label
+      x = x - (bgnd_rect_width/2 - w/2);
+    }
+
+    // first, draw a background rectangle first
+    _via_reg_ctx.fillStyle = 'black';
+    _via_reg_ctx.globalAlpha = 0.8;
+    _via_reg_ctx.fillRect(Math.floor(x),
+                          Math.floor(y - 1.1*char_height),
+                          Math.floor(bgnd_rect_width),
+                          Math.floor(char_height));
+
+    // then, draw text over this background rectangle
+    _via_reg_ctx.globalAlpha = 1.0;
+    _via_reg_ctx.fillStyle = 'yellow';
+    _via_reg_ctx.fillText(annotation_str,
+                          Math.floor(x + 0.4*char_width),
+                          Math.floor(y - 0.35*char_height));
+  }
       break;
 
     case VIA_REGION_SHAPE.CIRCLE:
@@ -2456,6 +2516,7 @@ function _via_draw_rect_region(x, y, w, h, is_selected) {
 
     if ( w > VIA_THEME_REGION_BOUNDARY_WIDTH &&
          h > VIA_THEME_REGION_BOUNDARY_WIDTH ) {
+
       // draw a boundary line on both sides of the fill line
       _via_reg_ctx.strokeStyle = VIA_THEME_BOUNDARY_LINE_COLOR;
       _via_reg_ctx.lineWidth   = VIA_THEME_REGION_BOUNDARY_WIDTH/16;
@@ -2471,6 +2532,7 @@ function _via_draw_rect_region(x, y, w, h, is_selected) {
                      h);
       _via_reg_ctx.stroke();
     }
+
   }
 }
 
