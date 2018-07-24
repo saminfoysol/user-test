@@ -28,13 +28,13 @@
 
       #maindivision1{
       float:left;
-      width:72.7vw;
+      width:72.5vw;
       }
 
       #maindivision2{
       float:right;
       background-color:white;
-      width:26.8vw;
+      width:26.5vw;
       height:130vh;
       border-right: 1px solid #D6DBDF;
       border-left: 1px solid #D6DBDF;
@@ -816,8 +816,8 @@
 
       ::-webkit-scrollbar {
     -webkit-appearance: none;
-    width:5px;
-    height:5px;
+    width:10px;
+    height:10px;
     
 }
 ::-webkit-scrollbar-thumb {
