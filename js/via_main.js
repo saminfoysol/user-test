@@ -1433,6 +1433,8 @@ function toggle_all_regions_selection(is_selected) {
   }
   _via_is_all_region_selected = is_selected;
 }
+
+//7/24 perhaps we can use this for hover
 function select_only_region(region_id) {
   toggle_all_regions_selection(false);
   set_region_select_state(region_id, true);

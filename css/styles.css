@@ -255,31 +255,37 @@
             display:inline-block;
       }
       #toolbar_zoom_in{
+            margin-top:.3em;
             width:3em;
             height:2em;
       }
 
       #toolbar_zoom_out{
+            margin-top:.3em;
             width:3em;
             height:2em;
       }
 
       #toolbar_import{
+            margin-top:.2em;
             width:3em;
             height:2em;
       }
 
       #toolbar_name_all_region{
+            margin-top:.2em;
             width:3em;
             height:2em;
       }
 
       #toolbar_download_csv{
+            margin-top:.2em;
             width:3em;
             height:2em;
       }
 
       #toolbar_deletion{
+            margin-top:.2em;
             width:3em;
             height:2em;
       }
@@ -289,6 +295,7 @@
       }
 
       #toolbar_draw{
+            margin-top:.2em;
 
             width:3em;
             height:2em;
