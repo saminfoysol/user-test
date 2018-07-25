@@ -837,6 +837,10 @@
             color:black;
       }
 
+      .transition_button:hover{
+            cursor:pointer;
+      }
+
       ::-webkit-scrollbar {
     -webkit-appearance: none;
     width:10px;
