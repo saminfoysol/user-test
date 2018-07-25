@@ -28,7 +28,7 @@
 
       #maindivision1{
       float:left;
-      width:72.5vw;
+      width:72.9vw;
       }
 
       #maindivision2{
@@ -255,37 +255,37 @@
             display:inline-block;
       }
       #toolbar_zoom_in{
-            margin-top:.3em;
+            padding-top:.3em;
             width:3em;
             height:2em;
       }
 
       #toolbar_zoom_out{
-            margin-top:.3em;
+            padding-top:.3em;
             width:3em;
             height:2em;
       }
 
       #toolbar_import{
-            margin-top:.2em;
+            padding-top:.2em;
             width:3em;
             height:2em;
       }
 
       #toolbar_name_all_region{
-            margin-top:.2em;
+            padding-top:.2em;
             width:3em;
             height:2em;
       }
 
       #toolbar_download_csv{
-            margin-top:.2em;
+            padding-top:.2em;
             width:3em;
             height:2em;
       }
 
       #toolbar_deletion{
-            margin-top:.2em;
+            padding-top:.2em;
             width:3em;
             height:2em;
       }
@@ -295,8 +295,20 @@
       }
 
       #toolbar_draw{
-            margin-top:.2em;
+            padding-top:.2em;
 
+            width:3em;
+            height:2em;
+      }
+
+      #toolbar_undo{
+            padding-top:.2em;
+            width:3em;
+            height:2em;
+      }
+
+      #toolbar_redo{
+            padding-top: .2em;
             width:3em;
             height:2em;
       }
@@ -811,6 +823,10 @@
 
       .bar_logo{
             fill:#3D6FB1;
+      }
+
+      .bar_off{
+            fill:#9EB7D8
       }
 
       #loader{
