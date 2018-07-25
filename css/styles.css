@@ -28,13 +28,13 @@
 
       #maindivision1{
       float:left;
-      width:72.9vw;
+      width:70%;
       }
 
       #maindivision2{
       float:right;
       background-color:white;
-      width:26.5vw;
+      width:30%;
       height:130vh;
       border-right: 1px solid #D6DBDF;
       border-left: 1px solid #D6DBDF;
@@ -129,7 +129,8 @@
       }
 
       #image_name{
-            padding-top:3em;
+            color:grey;
+            padding-top:1.5em;
             padding-left:4em;
       }
 

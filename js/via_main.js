@@ -244,9 +244,32 @@ function _via_init() {
   });
   document.getElementById("prev_button").addEventListener("click", function(){
     move_to_prev_image();
+    if (_via_image_id == "cars.png62201"){
+      document.getElementById("image_name").innerHTML = "outside.jpeg";
+    }
+    if (_via_image_id == "lot.jpeg71862"){
+      document.getElementById("image_name").innerHTML = "cars.png";
+    }
+    if (_via_image_id == "outside.jpeg21513"){
+      document.getElementById("image_name").innerHTML = "lot.jpeg";
+    }
+    
+    //code for showing the names of the images
   });
   document.getElementById("next_button").addEventListener("click", function(){
     move_to_next_image();
+    console.log(_via_image_id);
+    console.log(document.getElementById("image_name").innerHTML);
+    if (_via_image_id == "cars.png62201"){
+      document.getElementById("image_name").innerHTML = "lot.jpeg";
+    }
+    if (_via_image_id == "lot.jpeg71862"){
+      document.getElementById("image_name").innerHTML = "outside.jpeg";
+    }
+    if (_via_image_id == "outside.jpeg21513"){
+      document.getElementById("image_name").innerHTML = "cars.png";
+    }
+    //code for showing the name of the images
   });
   document.getElementById("toolbar_zoom_out").addEventListener("click", function(){
     zoom_out();
@@ -3801,11 +3824,30 @@ window.addEventListener('keydown', function(e) {
   }
   if (e.which === 78 || e.which === 39) { // n or right arrow
     move_to_next_image();
+    if (_via_image_id == "cars.png62201"){
+      document.getElementById("image_name").innerHTML = "lot.jpeg";
+    }
+    if (_via_image_id == "lot.jpeg71862"){
+      document.getElementById("image_name").innerHTML = "outside.jpeg";
+    }
+    if (_via_image_id == "outside.jpeg21513"){
+      document.getElementById("image_name").innerHTML = "cars.png";
+    }
+
     e.preventDefault();
     return;
   }
   if (e.which === 80 || e.which === 37) { // n or right arrow
     move_to_prev_image();
+    if (_via_image_id == "cars.png62201"){
+      document.getElementById("image_name").innerHTML = "outside.jpeg";
+    }
+    if (_via_image_id == "lot.jpeg71862"){
+      document.getElementById("image_name").innerHTML = "cars.png";
+    }
+    if (_via_image_id == "outside.jpeg21513"){
+      document.getElementById("image_name").innerHTML = "lot.jpeg";
+    }
     e.preventDefault();
     return;
   }
