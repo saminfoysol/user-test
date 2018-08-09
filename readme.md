@@ -7,6 +7,8 @@ Link for open source tool documentation:
 # Overview
 This prototype consists of the following screen. 
 
+![Prototype Screen](prototype.PNG)
+
 # documentation not from VGG Image Annotator
 
 VIA provided an object of type ImageMetadata they used which I modified appropriately to fit our needs for the object detection model. Data structures include maps used to represent the classes the user creates, and all the boxes/annotations in the photo album the user is working on. 
