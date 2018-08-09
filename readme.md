@@ -2,14 +2,30 @@
 
 Over the summer one of my projects as an intern was to develop a prototype for user testing for the Watson Visual Recognition's Object Detection feature. I used a lot of the documentation in the open source tool VGG Image Annotator and I personally thought it was a very helpful tool for some functionality of the prototype and should be looked at if anything for inspiration on implementing some functions and that sort of thing. Below I included my documentation for my prototype that was not already included in the VGG Image Annotator with references to the open source material where appropriate. 
 
-Link for open source tool documentation: 
+Link for open source tool documentation: https://gitlab.com/vgg/via/blob/master/CodeDoc.md
+
+(copyright statement in the code)
+
+To use prototype, just open locally. You can do this with python, using the command:
+
+python -m SimpleHTTPServer
+
+and open the prototype on:
+
+http://localhost:8000/via_demo_alpha.htm in any browser
 
 # Overview
 This prototype consists of the following screen. 
 
 ![Prototype Screen](prototype.png)
 
-# documentation not from VGG Image Annotator
+The user is to input a class name in the search bar to create a class. Then the user clicks a class to select it.
+
+After the class is selected the user draws a box over the desired region belonging to that class.
+
+Styled with Carbon Components. Hopscotch used for transitions.
+
+# Documentation not from VGG Image Annotator
 
 VIA provided an object of type ImageMetadata they used which I modified appropriately to fit our needs for the object detection model. Data structures include maps used to represent the classes the user creates, and all the boxes/annotations in the photo album the user is working on. 
 

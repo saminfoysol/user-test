@@ -3529,7 +3529,6 @@ function init_spreadsheet_input(type, col_headers, data, row_names) {
   }
 }
 
-
 // this vertical spacer is needed to allow scrollbar to show
 // items like Keyboard Shortcut hidden under the attributes panel
 function update_vertical_space() {
@@ -3546,18 +3545,14 @@ function update_attribute_value(attr_id, value) {
   switch(type) {
   case 'r': // region attribute
     _via_img_metadata[_via_image_id].regions[region_id].region_attributes[attribute_name] = value;
-    //
-    //SAMIN update_region_attributes_input_panel();
     break;
 
   case 'f': // file attribute
     _via_img_metadata[_via_image_id].file_attributes[attribute_name] = value;
-    //SAMIN update_file_attributes_input_panel();
     break;
   }
-  //if (_via_is_reg_attr_panel_visible) {
+
     set_region_select_state(region_id, false);
-  //}
   _via_redraw_reg_canvas();
   _via_is_user_updating_attribute_value = false;
   save_current_data_to_browser_cache();
@@ -3569,23 +3564,24 @@ function add_new_attribute(type, attribute_name) {
     if ( !_via_region_attributes.hasOwnProperty(attribute_name) ) {
       _via_region_attributes[attribute_name] = true;
     }
-    //SAMIN update_region_attributes_input_panel();
+
     break;
 
   case 'f': // file attribute
     if ( !_via_file_attributes.hasOwnProperty(attribute_name) ) {
       _via_file_attributes[attribute_name] = true;
     }
-    //SAMIN update_file_attributes_input_panel();
+
     break;
   }
   _via_is_user_adding_attribute_name = false;
 }
 
-
-//function to help with adding classes to the sidebar
+/*function to help with adding classes to the sidebar. Creates a class with the name of parameted [className] and
+with a color for the labels of the class of color [classColor]*/
 function addClass(className, classColor = _via_color_array[_via_class_names.size % 6]){
   
+  //checks for duplicates of class name, will not create class if class name already exists
   if (_via_class_names.has(className)){
     return;
   }
@@ -3597,6 +3593,8 @@ function addClass(className, classColor = _via_color_array[_via_class_names.size
   
 
   }
+
+  //Create DOM elements for the class for buttons to edit the class
   document.getElementById("classes_label").innerHTML = "Classes " + " (" + _via_class_names.size + ")";
   var button = document.createElement("input");
   var count = document.createElement("p");
@@ -3606,18 +3604,13 @@ function addClass(className, classColor = _via_color_array[_via_class_names.size
   var name_submit = document.createElement("input");
   var dummy = document.createElement("p");
 
-  //SAMIN colorswitch will replace colorswatch so it has functionality on each 
   var colorswitch = document.createElement("div");
   var colorpicker = document.createElement("div");
   var colorwrapper = document.createElement("div");
   colorwrapper.className = "color-wrapper";
 
 
-
-  //SAMIN come back and make these strings constants initialized at the start
-  //we want to make the id's of the buttons for the classes unique
-
-  /*SAMIN dummy to make sure every class starts on a separate line*/
+  /*dummy to make sure every class starts on a separate line*/
   dummy.className = "dummy";
   colorswitch.className = "class-color-holder";
   colorswitch.id = className + "_colorswitch";
@@ -3632,9 +3625,6 @@ function addClass(className, classColor = _via_color_array[_via_class_names.size
 '#993366', '#CCCCCC', '#FF99CC', '#FFCC99', '#FFFF99', '#CCffCC', '#CCFFff', '#99CCFF', '#CC99FF', '#FFFFFF' ];
 
   var div_array = [];
-
-  
-
 
     for (var i = 0; i < colorList.length; i++ ) {
       var li = document.createElement("li");
@@ -3651,9 +3641,8 @@ function addClass(className, classColor = _via_color_array[_via_class_names.size
         var click_count = _via_class_names.get(className)[0];
         var click_color = _via_class_names.get(className)[1];
         _via_class_names.set(className, [click_count, this.style.backgroundColor]);
-        //7/5 SAMIN lets change up the metadata now
+        //change up the metadata now
         //iterate through image metadata of current image and see where the region has an id that matches w the selected class
-        //for ()
         colorswitch.style.fill = this.style.backgroundColor;
         colorswitch.style.background = this.style.backgroundColor;
         colorpicker.style.display = "none";
@@ -3679,7 +3668,7 @@ function addClass(className, classColor = _via_color_array[_via_class_names.size
   button.id = className + "_via_btn";
   button.className = "bx--link _via_btn";
 
-  //have it so class names can't include underscores so this can be unique
+  //eventually have it so class names can't include underscores so this can be unique and there are on conflicts
   count.id = className + "_num";
   count.value=0;
   count.innerHTML = "(0)";
@@ -3703,8 +3692,6 @@ function addClass(className, classColor = _via_color_array[_via_class_names.size
   name_submit.id = className + "_submit";
   name_submit.className = "name_changer";
 
-  //document.getElementById(className).addEventListener("click", myScript);
-
   var leftDiv = document.createElement("div");
 
 
@@ -3719,7 +3706,6 @@ function addClass(className, classColor = _via_color_array[_via_class_names.size
 
 
   colorwrapper.appendChild(colorswitch);
-  //We have to get this moved over to next to the colorswitch
   colorwrapper.appendChild(colorpicker);
   leftDiv.appendChild(colorwrapper);
   leftDiv.appendChild(button);
@@ -3736,8 +3722,6 @@ function addClass(className, classColor = _via_color_array[_via_class_names.size
   path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   var path2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
 
-  //<svg width="16" height="16" viewBox="0 0 16 16"><path d="M2.032 10.924l7.99-7.99 2.97 2.97-7.99 7.99zm9.014-8.91l1.98-1.98 2.97 2.97-1.98 1.98zM0 16l3-1-2-2z"></path></svg>
-
   path1.setAttribute('d','M11 4v11c0 .6-.4 1-1 1H2c-.6 0-1-.4-1-1V4H0V3h12v1h-1zM2 4v11h8V4H2z');
   path1.setAttribute('fill','#3D6FB1');
   trash.appendChild(path1);
@@ -3753,8 +3737,6 @@ function addClass(className, classColor = _via_color_array[_via_class_names.size
   mainDiv.style.zIndex = 1;
   colorpicker.style.zIndex = 1000;
 
-
-  //change color of draw label 7/12
   document.getElementById("draw_path_1").style.fill = "#3D70B2";
   document.getElementById("draw_path_2").style.stroke = "#3D70B2";
   document.getElementById("toolbar_draw").style.backgroundColor = "#e5e5e5";
@@ -3767,11 +3749,9 @@ function addClass(className, classColor = _via_color_array[_via_class_names.size
     }
     else{
       _via_current_update_attribute_name = '';
-      //_via_current_shape = VIA_REGION_SHAPE.NONE;
     }
     var active_div = document.querySelector('.mainDivs.active');
     var active_btn = document.querySelector('._via_btn.active');
-    //VIA_THEME_BOUNDARY_FILL_COLOR = _via_class_names.get(className)[1];
     //if any active btn
     if(active_div){
       //remove active class from it 
@@ -3789,13 +3769,9 @@ function addClass(className, classColor = _via_color_array[_via_class_names.size
     button.style.backgroundColor = "#dbe4f0";
     turnOnShortcuts();
 
-
-
   mainDiv.addEventListener("mouseover", function(){
     if (mainDiv.classList.contains('active')){
-      return;
-    
-      
+      return;  
     }
     mainDiv.style.backgroundColor = "#ECF1F7";
     button.style.backgroundColor = "#ECF1F7";
@@ -3804,16 +3780,13 @@ function addClass(className, classColor = _via_color_array[_via_class_names.size
 
   mainDiv.addEventListener("mouseout", function(){
     if (mainDiv.classList.contains('active')){
-      return;
-    
-      
+      return; 
     }
     mainDiv.style.backgroundColor = "transparent";
     button.style.backgroundColor = "transparent";
   });
   
   mainDiv.addEventListener("click", function(){
-    //7/12 turn on draw label
     attr_input_focus(className);
     if (_via_class_names.has(className)){
       _via_current_update_attribute_name = className;
@@ -3821,21 +3794,15 @@ function addClass(className, classColor = _via_color_array[_via_class_names.size
     }
     else{
       _via_current_update_attribute_name = '';
-      //_via_current_shape = VIA_REGION_SHAPE.NONE;
     }
     var active_div = document.querySelector('.mainDivs.active');
     var active_btn = document.querySelector('._via_btn.active');
-    //VIA_THEME_BOUNDARY_FILL_COLOR = _via_class_names.get(className)[1];
-    //if any active btn
     if(active_div){
       //remove active class from it 
-
       active_div.classList.remove('active');
       active_btn.classList.remove('active');
       active_div.style.backgroundColor = "transparent";
       active_btn.style.backgroundColor = "transparent";
-
-
     }
 
     mainDiv.classList.add('active');
@@ -3849,19 +3816,15 @@ function addClass(className, classColor = _via_color_array[_via_class_names.size
 
   //removal of class
     trash.addEventListener("click", function(){
-      //6/26 if the one being trashed is the current class
       var isActive = false;
       if (mainDiv.classList.contains('active')){
         mainDiv.classList.remove('active');
         isActive = true;
         _via_current_update_attribute_name = '';
-        //7/12 turn off draw label 
           document.getElementById("draw_path_1").style.fill = "#9EB7D8";
           document.getElementById("draw_path_2").style.stroke = "#9EB7D8";
 
       }
-      //7/5 SAMIN
-      //lets try a different function altogether for this one
       //go through the metadata and delete all of that as well as w the classes
       select_regions(className);
       del_sel_regions();
@@ -3898,13 +3861,9 @@ function addClass(className, classColor = _via_color_array[_via_class_names.size
     });
 
     edit.addEventListener("click", function(){
-
       button.readOnly = false;
       button.focus();
       _via_changing_class = true;
-
-      
-
     });
 
     button.addEventListener("focus", function(){
@@ -3916,15 +3875,12 @@ function addClass(className, classColor = _via_color_array[_via_class_names.size
     button.addEventListener("blur", function(){
       turnOnShortcuts();
     });
-
-    //SAMIN add event listener on the submit button for editing the name
     button.addEventListener("change", function(){
 
 
       if (_via_class_names.has(button.value)){
         show_message("name already exists");
         button.value = className;
-        //find out we disabled the character keys before
         return;
       }
       var classCount = _via_class_names.get(className)[0];
@@ -3933,9 +3889,7 @@ function addClass(className, classColor = _via_color_array[_via_class_names.size
       _via_class_names.delete(className);
 
       className = button.value;
-
       //next lets change up the metadata and the canvas region data and update the canvas
-
       //canvas region
       for (var i = 0; i < _via_canvas_regions.length; i++){
         
@@ -3943,11 +3897,6 @@ function addClass(className, classColor = _via_color_array[_via_class_names.size
           _via_canvas_regions[i].region_attributes["name"] = className;
         }
       }
-
-      //metadata
-      //7/16
-      //change this for all images?
-
       for (var i = 0; i < _via_img_metadata["cars.png62201"].regions.length; i++){
         
         if (_via_img_metadata["cars.png62201"].regions[i].region_attributes["name"] == oldClassName){
@@ -3968,9 +3917,7 @@ function addClass(className, classColor = _via_color_array[_via_class_names.size
           _via_img_metadata["outside.jpeg21513"].regions[i].region_attributes["name"] = className;
         }
       }
-
       //we have to update labels as well as the canvas
-      //6/27 SAMIN remember this
       button.value = className;
       button.id = className + "_via_btn";
       count.id = className + "_num";
@@ -3979,10 +3926,6 @@ function addClass(className, classColor = _via_color_array[_via_class_names.size
       name_input.id = className + "_text";
       name_submit.id = className + "_submit";
       button.readOnly = true;
-
-      
-      //lets make this the new active class and the selected region
-
       var active_btn = document.querySelector('.class_button.active');
     
     //if any active btn
@@ -4002,6 +3945,8 @@ function addClass(className, classColor = _via_color_array[_via_class_names.size
 
 }
 
+/*turns off keyboard shortcuts, used when the user is using the keyboard to 
+edit or type in a class name*/
 function turnOnShortcuts(){
   if (_via_changing_class){
     return;
@@ -4011,6 +3956,7 @@ function turnOnShortcuts(){
   _via_is_user_updating_attribute_name = false;
 }
 
+/*updates data structures to match with what is in _via_img_metadata*/
 function repopulate(){
   var imported_name;
   var imported_color;
@@ -4024,7 +3970,6 @@ function repopulate(){
       _via_class_names.set(imported_name, [_via_class_names.get(imported_name)[0]+1, _via_class_names.get(imported_name)[1]]);
     }
     else{
-      //7/5 maybe we can have another argument for color here. edit the addclass function
       addClass(imported_name, imported_color);
       _via_class_names.set(imported_name, [1, imported_color]);
     }
@@ -4033,8 +3978,7 @@ function repopulate(){
   }
 }
 }
-
-//SAMIN changed body onload to addEventListener
+//changed body onload to addEventListener
 window.addEventListener('load', 
   _via_init(), false);
 
