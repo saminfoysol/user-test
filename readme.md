@@ -8,11 +8,11 @@ Link for open source tool documentation: https://gitlab.com/vgg/via/blob/master/
 
 To use prototype, just open locally. You can do this with python, using the command:
 
-python -m SimpleHTTPServer
+`python -m SimpleHTTPServer`
 
 and open the prototype on:
 
-http://localhost:8000/via_demo_alpha.htm in any browser
+`http://localhost:8000/via_demo_alpha.htm` in any browser
 
 # Overview
 This prototype consists of the following screen. 
@@ -32,10 +32,10 @@ VIA provided an object of type ImageMetadata they used which I modified appropri
 ### Data Structures
 
 Relevant data structures in the open source tool include:
-_via_canvas_regions
-_via_image_id_list
-_via_file_attributes
-_via_region_attributes 
+`_via_canvas_regions`
+`_via_image_id_list`
+`_via_file_attributes`
+`_via_region_attributes` 
 
 and documentation of those as well as those for constants and classes ImageMetadata and ImageRegion can be found at:
 https://gitlab.com/vgg/via/blob/master/CodeDoc.md
@@ -52,18 +52,18 @@ All inline javascript functions were moved to file _via_main.js and added with e
 
 All functions modified from the open source or not initially a function in the open source documentation are below.
 
-import_annotations_from_csv was modified with a call to function repopulate() to ensure that importing annotations also updates are class names and appropriate data structures. 
+`import_annotations_from_csv` was modified with a call to function repopulate() to ensure that importing annotations also updates are class names and appropriate data structures. 
 
-_via_load_canvas_regions was modified so upon loading the canvas the page is also updated to include all the image metadata the user made earlier in the session by updating the canvas and data structures by using page_data as reference.
+`_via_load_canvas_regions` was modified so upon loading the canvas the page is also updated to include all the image metadata the user made earlier in the session by updating the canvas and data structures by using `page_data` as reference.
 
-del_sel_regions was modified to not only delete regions on canvas but also to update removal of the regions in our data structures, specifically for the map _via_class_names. 
+`del_sel_regions` was modified to not only delete regions on canvas but also to update removal of the regions in our data structures, specifically for the map _`via_class_names`. 
 
-update_count takes a parameter as a class name and updates the HTML to show the number of regions in the _via_class_names data structure appropriately. 
+`update_count` takes a parameter as a class name and updates the HTML to show the number of regions in the `_via_class_names` data structure appropriately. 
 
-select_regions has been updated to select all regions of a class name, taking in a single parameter of type string of a class name. 
+`select_regions` has been updated to select all regions of a class name, taking in a single parameter of type string of a class name. 
 
-addClass is a function that creates the class when the user inputs the class name into the form with id submit_add. The _via_class_names map is updated to include this new class. There are also new HTML elements with javascript listeners added so that the class the user creates can be manipulated as they see fit. These HTML elements and event listeners include buttons and functionality for these buttons for editing the name of the class, changing the color of labels for the class, deleting the class, and selecting the class for drawing by clicking on the appropriate button. 
+`addClass` is a function that creates the class when the user inputs the class name into the form with id submit_add. The `_via_class_names` map is updated to include this new class. There are also new HTML elements with javascript listeners added so that the class the user creates can be manipulated as they see fit. These HTML elements and event listeners include buttons and functionality for these buttons for editing the name of the class, changing the color of labels for the class, deleting the class, and selecting the class for drawing by clicking on the appropriate button. 
 
-turnOffShortcuts is a function that turns off keyboard shortcuts while the user is typing in the class name so there is no unwanted actions or functions called on key presses during the input of the class name. 
+`turnOffShortcuts` is a function that turns off keyboard shortcuts while the user is typing in the class name so there is no unwanted actions or functions called on key presses during the input of the class name. 
 
-repopulate is a function that updates the _via_class_names Map based on _via_img_metadata.
+`repopulate` is a function that updates the `_via_class_names` Map based on `_via_img_metadata`.
