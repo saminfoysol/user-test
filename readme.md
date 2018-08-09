@@ -7,7 +7,7 @@ Link for open source tool documentation:
 # Overview
 This prototype consists of the following screen. 
 
-![Prototype Screen](prototype.PNG)
+![Prototype Screen](prototype.png)
 
 # documentation not from VGG Image Annotator
 
